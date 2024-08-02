@@ -1,0 +1,104 @@
+{
+  "name": "smile",
+  "configKey": "smile",
+  "version": "0.1.0-DEV",
+  "description": "SmileJS as a Nuxt module",
+  "repository": "https://github.com/jmuchovej/smile-nuxt",
+  "license": "MIT",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/types.d.ts",
+      "import": "./dist/module.mjs",
+      "require": "./dist/module.cjs"
+    }
+  },
+  "main": "./dist/module.cjs",
+  "types": "./dist/types.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "play": "pnpm dev",
+    "prepare": "nuxt-module-build prepare",
+
+    "build": "nuxt-module-build build",
+    "build:stub": "pnpm build --stub",
+    "prepack": "pnpm build",
+
+    "dev": "nuxi dev playground",
+    "dev:build": "nuxi build playground",
+    "dev:prepare": "pnpm prepare && pnpm build:stub",
+    "dev:generate": "nuxi generate playground",
+    "dev:preview": "nuxi preview playground",
+
+    "release": "pnpm lint && pnpm test && pnpm prepack && changelogen --release --push && pnpm publish",
+
+    "docs:build": "nuxi build docs",
+    "docs:preview": "nuxi preview docs",
+    "docs:dev": "nuxi dev docs",
+
+    "lint": "eslint .",
+    "lint:fix": "pnpm lint --fix",
+
+    "test": "vitest run",
+    "test:watch": "vitest watch",
+    "test:types": "pnpm dev:prepare && tsc --noEmit && nuxi typecheck playground"
+  },
+  "dependencies": {
+    "@nuxt/icon": "^1.3.1",
+    "@nuxt/image": "^1.7.0",
+    "@nuxt/kit": "^3.12.4",
+    "@nuxtjs/tailwindcss": "^6.12.1",
+    "@pinia/nuxt": "^0.5.2",
+    "@tailwindcss/aspect-ratio": "^0.4.2",
+    "@tailwindcss/forms": "^0.5.7",
+    "@tailwindcss/typography": "^0.5.13",
+    "@types/crypto-js": "^4.2.2",
+    "@vueuse/core": "^10.11.0",
+    "axios": "^1.7.2",
+    "clipboard": "^2.0.11",
+    "commander": "^12.1.0",
+    "crypto-js": "^4.2.0",
+    "daisyui": "^4.12.10",
+    "defu": "^6.1.4",
+    "firebase": "^10.12.4",
+    "pathe": "^1.1.2",
+    "pinia": "^2.2.0",
+    "tailwindcss": "^3.4.7",
+    "unstorage": "^1.10.2",
+    "uuid": "^10.0.0",
+    "walkdir": "^0.4.1",
+    "ws": "^8.18.0"
+  },
+  "devDependencies": {
+    "@iconify-json/fa6-brands": "^1.1.21",
+    "@iconify-json/fa6-solid": "^1.1.23",
+    "@iconify-json/simple-icons": "^1.1.111",
+    "@iconify-json/system-uicons": "^1.1.12",
+    "@nuxt/devtools": "^1.3.9",
+    "@nuxt/eslint-config": "^0.3.13",
+    "@nuxt/module-builder": "^0.8.1",
+    "@nuxt/schema": "^3.12.4",
+    "@nuxt/test-utils": "^3.13.1",
+    "@types/node": "^20.14.11",
+    "@types/ws": "^8.5.11",
+    "chalk": "^5.3.0",
+    "changelogen": "^0.5.5",
+    "dotenv": "^16.4.5",
+    "eslint": "^9.7.0",
+    "firebase-tools": "^13.14.2",
+    "nuxt": "^3.12.4",
+    "prettier": "^3.3.3",
+    "shelljs": "^0.8.5",
+    "typescript": "latest",
+    "vitest": "^2.0.3",
+    "vue-tsc": "^2.0.26"
+  },
+  "resolutions": {
+    "@jmuchovej/smile": "link:."
+  },
+  "stackblitz": {
+    "startCommand": "pnpm dev:prepare && pnpm dev"
+  }
+}
