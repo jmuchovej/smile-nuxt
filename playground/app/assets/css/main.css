@@ -1,0 +1,13 @@
+/* https://github.com/nuxt/ui/issues/3374#issuecomment-2675271640 */
+@layer theme, base, components, utilities;
+
+@import 'tailwindcss/theme' layer(theme) theme(static);
+@import 'tailwindcss/preflight' layer(base);
+@import 'tailwindcss/utilities' layer(utilities);
+
+/* Then import "@nuxt/ui": */
+@import '@nuxt/ui-pro';
+
+@theme static {
+  --font-sans: "Open Sans", sans-serif;
+}

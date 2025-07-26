@@ -1,5 +1,5 @@
 {
-  "name": "smile",
+  "name": "@smile/nuxt",
   "configKey": "smile",
   "version": "0.1.0-DEV",
   "description": "SmileJS as a Nuxt module",
@@ -8,97 +8,73 @@
   "type": "module",
   "exports": {
     ".": {
-      "types": "./dist/types.d.ts",
+      "style": "./dist/runtime/index.css",
       "import": "./dist/module.mjs",
       "require": "./dist/module.cjs"
-    }
+    },
+    "./runtime": "./dist/runtime/index.js"
   },
   "main": "./dist/module.cjs",
-  "types": "./dist/types.d.ts",
   "files": [
     "dist"
   ],
   "scripts": {
-    "play": "pnpm dev",
-    "prepare": "nuxt-module-build prepare",
-
-    "build": "nuxt-module-build build",
-    "build:stub": "pnpm build --stub",
-    "prepack": "pnpm build",
-
+    "prepack": "nuxt-module-build build",
     "dev": "nuxi dev playground",
     "dev:build": "nuxi build playground",
-    "dev:prepare": "pnpm prepare && pnpm build:stub",
-    "dev:generate": "nuxi generate playground",
-    "dev:preview": "nuxi preview playground",
-
-    "release": "pnpm lint && pnpm test && pnpm prepack && changelogen --release --push && pnpm publish",
-
-    "docs:build": "nuxi build docs",
-    "docs:preview": "nuxi preview docs",
-    "docs:dev": "nuxi dev docs",
-
+    "dev:prepare": "nuxt-module-build build --stub && nuxt-module-build prepare && nuxi prepare playground",
+    "release": "pnpm run lint && pnpm run test && pnpm run prepack && changelogen --release && bun publish && git push --follow-tags",
     "lint": "eslint .",
-    "lint:fix": "pnpm lint --fix",
-
     "test": "vitest run",
     "test:watch": "vitest watch",
-    "test:types": "pnpm dev:prepare && tsc --noEmit && nuxi typecheck playground"
+    "test:types": "vue-tsc --noEmit && cd playground && vue-tsc --noEmit"
   },
   "dependencies": {
-    "@nuxt/icon": "^1.3.1",
-    "@nuxt/image": "^1.7.0",
-    "@nuxt/kit": "^3.12.4",
-    "@nuxtjs/tailwindcss": "^6.12.1",
-    "@pinia/nuxt": "^0.5.2",
-    "@tailwindcss/aspect-ratio": "^0.4.2",
-    "@tailwindcss/forms": "^0.5.7",
-    "@tailwindcss/typography": "^0.5.13",
-    "@types/crypto-js": "^4.2.2",
-    "@vueuse/core": "^10.11.0",
-    "axios": "^1.7.2",
-    "clipboard": "^2.0.11",
-    "commander": "^12.1.0",
-    "crypto-js": "^4.2.0",
-    "daisyui": "^4.12.10",
+    "@libsql/client": "^0.15.10",
+    "@nuxt/icon": "^1.15.0",
+    "@nuxt/kit": "^4.0.1",
+    "@nuxt/ui": "^3.3.0",
+    "@nuxt/ui-pro": "^3.3.0",
+    "@nuxtjs/mdc": "^0.17.2",
+    "@nuxtjs/tailwindcss": "^6.14.0",
+    "@pinia/nuxt": "^0.11.2",
+    "@vueuse/core": "^13.5.0",
     "defu": "^6.1.4",
-    "firebase": "^10.12.4",
-    "pathe": "^1.1.2",
-    "pinia": "^2.2.0",
-    "tailwindcss": "^3.4.7",
-    "unstorage": "^1.10.2",
-    "uuid": "^10.0.0",
+    "drizzle-orm": "^0.44.3",
+    "lodash-es": "^4.17.21",
+    "pathe": "^2.0.3",
+    "pinia": "^3.0.3",
+    "tailwindcss": "^4.1.11",
+    "unstorage": "^1.16.1",
+    "uuid": "^11.1.0",
     "walkdir": "^0.4.1",
-    "ws": "^8.18.0"
+    "zod": "^4.0.10"
   },
   "devDependencies": {
-    "@iconify-json/fa6-brands": "^1.1.21",
-    "@iconify-json/fa6-solid": "^1.1.23",
-    "@iconify-json/simple-icons": "^1.1.111",
-    "@iconify-json/system-uicons": "^1.1.12",
-    "@nuxt/devtools": "^1.3.9",
-    "@nuxt/eslint-config": "^0.3.13",
-    "@nuxt/module-builder": "^0.8.1",
-    "@nuxt/schema": "^3.12.4",
-    "@nuxt/test-utils": "^3.13.1",
-    "@types/node": "^20.14.11",
-    "@types/ws": "^8.5.11",
-    "chalk": "^5.3.0",
-    "changelogen": "^0.5.5",
-    "dotenv": "^16.4.5",
-    "eslint": "^9.7.0",
-    "firebase-tools": "^13.14.2",
-    "nuxt": "^3.12.4",
-    "prettier": "^3.3.3",
-    "shelljs": "^0.8.5",
-    "typescript": "latest",
-    "vitest": "^2.0.3",
-    "vue-tsc": "^2.0.26"
-  },
-  "resolutions": {
-    "@jmuchovej/smile": "link:."
+    "@iconify-json/fa6-brands": "^1.2.6",
+    "@iconify-json/fa6-solid": "^1.2.4",
+    "@iconify-json/simple-icons": "^1.2.44",
+    "@iconify-json/system-uicons": "^1.2.2",
+    "@nuxt/devtools": "^2.6.2",
+    "@nuxt/eslint-config": "^1.7.1",
+    "@nuxt/module-builder": "^1.0.2",
+    "@nuxt/schema": "^4.0.1",
+    "@nuxt/test-utils": "^3.19.2",
+    "@types/lodash-es": "^4.17.12",
+    "@types/node": "latest",
+    "@types/ws": "^8.18.1",
+    "changelogen": "^0.6.2",
+    "chokidar": "^4.0.3",
+    "eslint": "^9.32.0",
+    "json-schema-to-typescript": "^15.0.4",
+    "nodejs-polars": "^0.19.0",
+    "nuxt": "^4.0.1",
+    "typescript": "~5.8.3",
+    "vitest": "^3.2.4",
+    "vue-tsc": "^3.0.4",
+    "zod-to-ts": "^1.2.0"
   },
   "stackblitz": {
-    "startCommand": "pnpm dev:prepare && pnpm dev"
+    "startCommand": "bun dev:prepare && bun dev"
   }
 }

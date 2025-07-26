@@ -17,5 +17,5 @@ export default defineEventHandler(async (event) => {
   await $storage.setItem(`recruitment:study_id`, STUDY_ID)
   await $storage.setItem(`recruitment:task_id`, SESSION_ID)
 
-  return {}
+  return { storage: await $storage.getItem(`recruitment:service`) }
 })
