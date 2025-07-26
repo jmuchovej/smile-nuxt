@@ -1,123 +1,73 @@
-import { join } from "pathe";
-import { defu } from "defu";
 import {
-  defineNuxtModule,
-  addComponentsDir, addPlugin, addImports,
-  createResolver,
-  installModule,
-  extendPages,
-  isIgnored,
-  addImportsDir,
-  addLayout,
-  addTemplate,
-} from "@nuxt/kit"
-import { name, version } from "../package.json"
-import schema from "./schema"
+	createResolver,
+	defineNuxtModule,
+} from "@nuxt/kit";
+import type { Nuxt } from "nuxt/schema";
+import { defu } from "defu";
+import { loadSmileConfig } from "./utils/config";
+import { logger, registerModule } from "./utils/module";
 
-import type { ModuleOptions, SmileContext } from "./types/module";
+export * from "./types";
+export * from "./utils";
 
-const module = defineNuxtModule<ModuleOptions>({
-  meta: {
-    name,
-    version,
-    configKey: "smile",
-    compatibility: {
-      nuxt: ">=3.10.0",
-    },
-  },
-  // Default configuration options of the Nuxt module
-  defaults: {
-    // TODO default to whatever environment Nuxt is using
-    mode: "development",
-    project: schema.project.$default,
-    localStorageKey: schema.localStorageKey.$default,
-    git: schema.git.$default,
-  },
+export interface ModuleOptions {
+	database?: {
+		type: string;
+		url: string;
+	};
+}
 
-  async setup(_options, _nuxt) {
-    const { resolve } = createResolver(import.meta.url)
+export default defineNuxtModule<ModuleOptions>({
+	meta: {
+		name: "@smile/nuxt",
+		configKey: "smile",
+		compatibility: {
+			nuxt: ">=3.16.0",
+		},
+		docs: "https://smile.gureckislab.org/getting-started/",
+	},
+	defaults: {
+		database: {
+			type: "sqlite",
+			url: "file:./smile.db",
+		},
+	},
+	async setup(options: ModuleOptions, nuxt: Nuxt) {
+		const { resolve } = createResolver(import.meta.url);
 
-    const runtimeOptions = Object.fromEntries(
-      Object.entries(_options).filter(([key]) => key in schema)
-    )
-    _nuxt.options.appConfig.smile = Object.assign(
-      _nuxt.options.appConfig.icon || {},
-      runtimeOptions,
-    )
+		nuxt.options.pages = nuxt.options.pages || {};
+		nuxt.options.pages = true;
 
-    _nuxt.hook("schema:extend", (schemas) => {
-      schemas.push({
-        appConfig: {
-          smile: schema,
-        }
-      })
-    })
+		nuxt.options.alias["#smile"] = resolve("./runtime");
 
-    // Do not add the extension since the `.ts` will be transpiled to `.mjs` after `npm run prepack`
-    const runtimeDir = resolve("./runtime")
+		const { activeExperiment, experiments } = await loadSmileConfig(nuxt);
 
-    // Modules
-    await installModule("@pinia/nuxt")
-    await installModule("@nuxt/icon")
+		const versions = experiments.map((e) => e.version) as string[];
 
-    const twTemplate = addTemplate({
-      filename: "smile-tailwind.config.cjs",
-      write: true,
-      getContents: ({ nuxt }) => `module.exports = {
-  content: [
-    "${resolve(runtimeDir, "components/**/*")}",
-    "${resolve(runtimeDir, "layouts/**/*")}",
-    "${resolve(runtimeDir, "pages/**/*")}",
-  ],
-  plugins: [
-    require('daisyui'),
-    // require('@tailwindcss/forms')({ strategy: 'class' }),
-    // require('@tailwindcss/typography'),
-    // require('@tailwindcss/aspect-ratio'),
-  ],
-  daisyui: {
-    logs: false
-  }
-}`
-    })
-    await installModule("@nuxtjs/tailwindcss", defu({
-      exposeConfig: true,
-      config: { darkMode: `class`, },
-      configPath: [twTemplate.dst, join(_nuxt.options.rootDir, `tailwind.config`)]
-    // @ts-expect-error – `@nuxtjs/tailwindcss` not installed yet
-    }, _nuxt.options.tailwindcss))
+		if (nuxt.options.dev) {
+			nuxt.options.appConfig.smile = defu(nuxt.options.appConfig.smile || {}, {
+				activeExperiment,
+				availableExperiments: versions,
+			});
+		}
 
-    // Plugins
-    // addPlugin(resolve(runtimeDir, "stores", "smile"))
-    // addPlugin(resolve(runtimeDir, "stores", "useSmileDataStore"))
-    // addPlugin(resolve(runtimeDir, "stores", "firebase"))
+		nuxt.options.ssr = false;
+		nuxt.options.css = nuxt.options.css || [];
 
-    // Composables
-    addImportsDir(resolve(runtimeDir, "composables"))
+		nuxt.options.router = defu(nuxt.options.router || {}, {
+			options: { hashMode: true },
+		});
+		nuxt.options.router.options.hashMode = true;
 
-    // Layouts
-    // const layouts = ["base", "experiment", "thanks", "welcome"]
-    // layouts.forEach(layout => (addLayout(addTemplate({
-    //   src: resolve(runtimeDir, "layouts", `${layout}.vue`),
-    //   write: true
-    // }), layout)))
+		await registerModule(nuxt, "@nuxtjs/mdc", "mdc", {});
+		if (nuxt.options.dev) {
+			await registerModule(nuxt, "@nuxt/ui-pro", "ui", {});
+		} else {
+			await registerModule(nuxt, "@nuxt/ui", "ui", {});
+		}
 
-    // Components
-    addComponentsDir({
-      path: resolve(runtimeDir, "components"),
-      prefix: "Smile",
-      global: true,
-      watch: true,
-      pathPrefix: false,
-    })
-
-    // TODO provide various pages which user's shouldn't easily modify, e.g.:
-    //   - /config
-    //   - / (& presentation mode)
-    //   - /timeline  // timeline visualizer
-
-    // TODO look into using `addCustomTab` for development mode!
-  },
-})
-
-export default module
+		if (!nuxt.options.dev) {
+			return;
+		}
+	},
+});
