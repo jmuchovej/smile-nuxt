@@ -46,16 +46,10 @@ const defaultConfig: NuxtSmileConfig = {
 };
 
 export const defineSmileConfig = createDefineConfig<NuxtSmileConfig>();
-const defaultSmileOptions: SmileConfigLoaderOptions = {
-  defaultFallback: false,
-}
 
 type ConfigLoader = typeof watchConfig;
 
-export const loadSmileConfig = async (
-  nuxt: Nuxt,
-  { defaultFallback }: SmileConfigLoaderOptions = defaultSmileOptions
-) => {
+export async function loadSmileConfig(nuxt: Nuxt) {
   const devConfigLoader = (opts: WatchConfigOptions) => watchConfig({
     ...opts,
     onWatch: (e) => {
@@ -76,7 +70,7 @@ export const loadSmileConfig = async (
       name: "smile",
       cwd: layer.config.rootDir,
       // Don't push the dummy configuration that's used for type-generation
-      defaultConfig: defaultFallback ? defaultConfig : undefined,
+      defaultConfig: { activeExperiment: "", experiments: {} }
     }))
   )
 

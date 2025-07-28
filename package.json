@@ -53,6 +53,7 @@
     "zod": "^4.0.10"
   },
   "devDependencies": {
+    "@smile/nuxt": "link:.",
     "@iconify-json/fa6-brands": "^1.2.6",
     "@iconify-json/fa6-solid": "^1.2.4",
     "@iconify-json/simple-icons": "^1.2.44",
@@ -75,6 +76,9 @@
     "typescript": "~5.8.3",
     "vitest": "^3.2.4",
     "vue-tsc": "^3.0.4"
+  },
+  "resolutions": {
+    "@smile/nuxt": "workspace:*"
   },
   "stackblitz": {
     "startCommand": "bun dev:prepare && bun dev"
