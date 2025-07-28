@@ -3,14 +3,14 @@ import type { SmileColumn, SmileTable } from "./types";
 
 const sqlite = new SQLiteSyncDialect();
 
-export const getDropTableIfExistsQuery = (table: SmileTable): string => {
+export function getDropTableIfExistsQuery(table: SmileTable): string {
   return `DROP TABLE IF EXISTS ${sqlite.escapeName(table.name)}`;
-};
+}
 
 /**
  * Generate SQL CREATE TABLE statement from Smile table (for debugging/migration)
  */
-export const getCreateTableQuery = (table: SmileTable): string => {
+export function getCreateTableQuery(table: SmileTable): string {
   const columns: string[] = [];
 
   // Add columns
@@ -35,7 +35,7 @@ export const getCreateTableQuery = (table: SmileTable): string => {
   }
 
   return `CREATE TABLE ${sqlite.escapeName(table.name)} (\n${columns.join(",\n")}\n)`;
-};
+}
 
 /**
  * Convert Smile column type to SQL type string
@@ -52,7 +52,7 @@ function getSQLType(column: SmileColumn): "TEXT" | "INTEGER" {
   }
 }
 
-export const getCreateIndexQueries = (table: SmileTable): string[] => {
+export function getCreateIndexQueries(table: SmileTable): string[] {
   const queries: string[] = [];
   for (const index of Object.values(table.indexes ?? {})) {
     const { name, columns, unique } = index;
@@ -71,4 +71,4 @@ export const getCreateIndexQueries = (table: SmileTable): string[] => {
   }
 
   return queries;
-};
+}

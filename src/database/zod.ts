@@ -6,16 +6,15 @@
  * that can be used by both SQL generation and Drizzle conversion.
  */
 import type { ZodType } from "zod";
-import { ZodNullable, type ZodObject, ZodString, ZodDate, ZodOptional, ZodNumber, ZodDefault } from "zod";
+import { ZodDate, ZodDefault, ZodNullable, ZodNumber, type ZodObject, ZodOptional, ZodString } from "zod";
+import type { SmileColumn, SmileColumnConstraints, SmileColumnType, SmileTable } from "./types";
+import { tableSchema } from "./types";
 
-import { tableSchema } from "./schemas";
-import type { SmileTable, SmileColumn, SmileColumnType, SmileColumnConstraints } from "./types";
-
-export const getValidatedTable = (name: string, schema: ZodObject): SmileTable => {
+export function getValidatedTable(name: string, schema: ZodObject): SmileTable {
   const table = fromZod(name, schema);
   tableSchema.parse(table);
   return table;
-};
+}
 
 /**
  * Convert a Zod schema to Smile table abstraction
@@ -105,6 +104,7 @@ function isOptionalField(zodType: ZodType): boolean {
  */
 function unwrapZodType(zodType: ZodType): ZodType {
   if (zodType instanceof ZodOptional || zodType instanceof ZodNullable || zodType instanceof ZodDefault) {
+    // biome-ignore lint/suspicious/noExplicitAny: false-positive, required to properly type as ZodType...
     return unwrapZodType(zodType.unwrap() as any as ZodType);
   }
 

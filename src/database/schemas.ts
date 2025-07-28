@@ -1,55 +1,50 @@
-import { z } from "zod/v4";
+import { z } from "zod";
 
-// Core column types that Smile supports
-export const columnTypeSchema = z.enum(["text", "number", "boolean", "date", "json"]);
-
-export const columnConstraintsSchema = z.object({
-  primaryKey: z.boolean().optional(),
-  unique: z.boolean().optional(),
-  index: z.boolean().optional(),
-  optional: z.boolean().optional(),
-  trialID: z.boolean().optional(),
-  blockID: z.boolean().optional(),
-  conditionID: z.boolean().optional(),
+// Participants table schema
+export const participantSchema = z.object({
+  id: z.string().primaryKey(),
+  experiment: z.string().index(),
+  platform: z.string().index(),
+  startedAt: z.date().index(),
+  completedAt: z.date().optional(),
+  status: z.enum(["active", "completed", "withdrawn"]).default("active").index(),
+  metadata: z.object({}).optional(),
 });
 
-export const columnSchema = z.object({
-  type: columnTypeSchema,
-  constraints: columnConstraintsSchema,
+// Sessions table schema
+export const sessionSchema = z.object({
+  id: z.string().primaryKey(),
+  participant: z.string().index(),
+  platform: z.string().index(),
+  experiment: z.string().index(),
+  condition: z.string().optional(),
+  startedAt: z.date().index(),
+  completedAt: z.date().optional(),
+  timezone: z.string().optional(),
+  metadata: z.object({}),
 });
 
-export const compositeKeysSchema = z.object({
-  primary: z.array(z.string()).optional(),
+// Blocks table schema
+export const blockSchema = z.object({
+  id: z.string().primaryKey(),
+  sessionId: z.string().index(),
+  blockNumber: z.number().index(),
+  blockType: z.string().optional(),
+  startedAt: z.date().index(),
+  completedAt: z.date().optional(),
 });
 
-export const indexSchema = z.object({
-  name: z.string(),
-  columns: z.array(z.string()).min(1),
-  unique: z.boolean().optional(),
+// Trials table schema
+export const trialSchema = z.object({
+  id: z.string().primaryKey(),
+  sessionID: z.string().index(),
+  blockID: z.string().optional().index(),
+  trialNumber: z.number().index(),
+  stimuliID: z.string().index(),
+  stimuliTable: z.string().index(),
+  presentedAt: z.date().index(),
+  respondedAt: z.date().optional(),
+  response: z.object({}).optional(),
+  reactionTime: z.number().optional(),
+  metadata: z.object({}).optional(),
 });
-
-const indexesSchema = z.array(indexSchema);
-
-// Intermediate table representation
-export const tableSchema = z
-  .object({
-    name: z.string().min(1),
-    columns: z
-      .record(z.string(), columnSchema)
-      .refine((cols) => Object.keys(cols).length > 0, { message: "Tables must have at least one column" }),
-    compositeKeys: compositeKeysSchema,
-    indexes: indexesSchema,
-  })
-  .refine(
-    (table) => {
-      const indexes = table.indexes.map((idx) => idx.name);
-      return indexes.length === new Set(indexes).size;
-    },
-    { message: "Found duplicate indexes!" }
-  )
-  .refine(
-    (table) => {
-      return table.indexes.every((index) => index.columns.every((column) => column in table.columns));
-    },
-    { message: "Index references non-existent columns..." }
-  );

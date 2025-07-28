@@ -1,7 +1,7 @@
-import { z, type ZodObject } from "zod";
+import defu from "defu";
+import { type ZodObject, z } from "zod";
 import type { ExperimentService } from "../types/service";
 import { logger } from "../utils/module";
-import defu from "defu";
 import type { DefinedStimuli, ResolvedStimuli } from "./stimuli";
 import { resolveStimuli } from "./stimuli";
 
@@ -56,7 +56,7 @@ export interface ResolvedExperiment {
   extra?: Required<DefinedExperiment["extra"]>;
 }
 
-export const defineExperiment = (experiment: ExperimentBase): DefinedExperiment => {
+export function defineExperiment(experiment: ExperimentBase): DefinedExperiment {
   const schema = experiment.schema || z.object({});
 
   return {
@@ -64,15 +64,15 @@ export const defineExperiment = (experiment: ExperimentBase): DefinedExperiment 
     rootDir: "",
     schema,
   };
-};
+}
 
 export const EXPERIMENT_TABLE_PREFIX = `_experiment`;
 
-const getTableName = (name: string) => {
+function getTableName(name: string) {
   return `${EXPERIMENT_TABLE_PREFIX}-${name}`;
-};
+}
 
-export const resolveExperiment = (version: string, experiment: DefinedExperiment): ResolvedExperiment => {
+export function resolveExperiment(version: string, experiment: DefinedExperiment): ResolvedExperiment {
   if (/^[a-z_][\w-]+$/i.test(version) === false) {
     logger.warn(
       [
@@ -92,7 +92,7 @@ export const resolveExperiment = (version: string, experiment: DefinedExperiment
     autoSave: false,
     extra: {},
   });
-};
+}
 
 export const resolveExperiments = (
   experiments: Record<string, DefinedExperiment>
