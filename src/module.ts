@@ -5,15 +5,26 @@ import {
 } from "@nuxt/kit";
 import type { Nuxt } from "nuxt/schema";
 import { defu } from "defu";
-import { loadSmileConfig } from "./utils/config";
+import { loadSmileConfig } from "./config";
 import { logger, registerModule } from "./utils/module";
-import type { SmileModuleOptions } from "./types/module";
 import { initializeDatabase } from "./database";
 import { join } from "pathe";
 import { existsSync, mkdirSync } from "node:fs";
 
+export {
+  defineStimuli,
+  defineExperiment,
+  defineSmileConfig
+} from "./config";
+export type * from "./config";
 export * from "./types";
-export * from "./utils";
+
+export interface SmileModuleOptions {
+  database?: {
+    type: "sqlite" | string,
+    url: string;
+  };
+}
 
 export default defineNuxtModule<SmileModuleOptions>({
 	meta: {
@@ -61,8 +72,10 @@ export default defineNuxtModule<SmileModuleOptions>({
 			},
 		});
 
+		logger.debug(`Loading \`smile.config.ts\`...`)
 		const { activeExperiment, experiments } = await loadSmileConfig(nuxt);
-		const versions = experiments.map((e) => e.version) as string[];
+		const versions = Object.keys(experiments) as string[];
+		logger.debug(`Loaded ${versions.length} experiments.`);
 
 		nuxt.options.appConfig.smile = defu(nuxt.options.appConfig.smile, {
 			activeExperiment,
@@ -71,9 +84,7 @@ export default defineNuxtModule<SmileModuleOptions>({
 
 		nuxt.options.runtimeConfig.smile = defu(nuxt.options.runtimeConfig.smile, {
 			activeExperiment,
-			experiments: Object.fromEntries(
-			  experiments.map((e) => [e.version, e])
-			),
+			experiments,
 		});
 
 		const sandbox = join(nuxt.options.buildDir, "smile")
