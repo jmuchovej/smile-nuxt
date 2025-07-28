@@ -1,28 +1,37 @@
-// Module options TypeScript interface definition
-export interface ModuleOptions {
-  mode: "development" | "testing" | "presentation" | "production";
+import type { ResolvedExperiment } from "./experiment"
 
-  project: {
-    name: string | undefined;
-    ref: string | undefined;
-    codename: string | undefined;
-    url: string | undefined;
+// declare module '#smile/experiments' {
+//   export const experiments: Record<string, unknown>
+// }
+
+declare module "@nuxt/schema" {
+  interface RuntimeConfig {
+    smile: SmileRuntimeConfig
   }
-
-  localStorageKey: string;
-
-  git: {
-    repo: string | undefined;
-    owner: string | undefined;
-    branch: string | undefined;
-    last_commit: {
-      message: string | undefined;
-      sha: string | undefined;
-      url: string | undefined;
-    }
+  interface PublicRuntimeConfig {
+    smile: SmilePublicRuntimeConfig
   }
 }
 
-export interface SmileContext extends ModuleOptions {
+export interface SmileModuleOptions {
+  database?: {
+    type: "sqlite" | string,
+    url: string;
+  };
+}
 
+export interface SmileRuntimeConfig {
+  activeExperiment: string;
+  experiments: Record<string, ResolvedExperiment>;
+  database: {
+    path: string;
+  }
+}
+
+export interface SmilePublicRuntimeConfig {
+}
+
+export interface SmileAppConfig {
+  activeExperiment: string
+  availableExperiments: string[]
 }

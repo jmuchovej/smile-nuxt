@@ -1,3 +1,4 @@
+import "./database/core/zod";
 import {
 	createResolver,
 	defineNuxtModule,
@@ -6,18 +7,15 @@ import type { Nuxt } from "nuxt/schema";
 import { defu } from "defu";
 import { loadSmileConfig } from "./utils/config";
 import { logger, registerModule } from "./utils/module";
+import type { SmileModuleOptions } from "./types/module";
+import { initializeDatabase } from "./database";
+import { join } from "pathe";
+import { existsSync, mkdirSync } from "node:fs";
 
 export * from "./types";
 export * from "./utils";
 
-export interface ModuleOptions {
-	database?: {
-		type: string;
-		url: string;
-	};
-}
-
-export default defineNuxtModule<ModuleOptions>({
+export default defineNuxtModule<SmileModuleOptions>({
 	meta: {
 		name: "@smile/nuxt",
 		configKey: "smile",
@@ -32,24 +30,12 @@ export default defineNuxtModule<ModuleOptions>({
 			url: "file:./smile.db",
 		},
 	},
-	async setup(options: ModuleOptions, nuxt: Nuxt) {
+	async setup(options: SmileModuleOptions, nuxt: Nuxt) {
 		const { resolve } = createResolver(import.meta.url);
+		nuxt.options.alias["#smile"] = resolve("./runtime");
 
 		nuxt.options.pages = nuxt.options.pages || {};
 		nuxt.options.pages = true;
-
-		nuxt.options.alias["#smile"] = resolve("./runtime");
-
-		const { activeExperiment, experiments } = await loadSmileConfig(nuxt);
-
-		const versions = experiments.map((e) => e.version) as string[];
-
-		if (nuxt.options.dev) {
-			nuxt.options.appConfig.smile = defu(nuxt.options.appConfig.smile || {}, {
-				activeExperiment,
-				availableExperiments: versions,
-			});
-		}
 
 		nuxt.options.ssr = false;
 		nuxt.options.css = nuxt.options.css || [];
@@ -66,8 +52,33 @@ export default defineNuxtModule<ModuleOptions>({
 			await registerModule(nuxt, "@nuxt/ui", "ui", {});
 		}
 
-		if (!nuxt.options.dev) {
-			return;
-		}
+		nuxt.options.nitro = defu(nuxt.options.nitro, {});
+		nuxt.options.appConfig = defu(nuxt.options.appConfig, { smile: {} });
+		nuxt.options.runtimeConfig = defu(nuxt.options.runtimeConfig, {
+		  smile: {},
+			public: {
+				smile: {}
+			},
+		});
+
+		const { activeExperiment, experiments } = await loadSmileConfig(nuxt);
+		const versions = experiments.map((e) => e.version) as string[];
+
+		nuxt.options.appConfig.smile = defu(nuxt.options.appConfig.smile, {
+			activeExperiment,
+			availableExperiments: versions,
+		});
+
+		nuxt.options.runtimeConfig.smile = defu(nuxt.options.runtimeConfig.smile, {
+			activeExperiment,
+			experiments: Object.fromEntries(
+			  experiments.map((e) => [e.version, e])
+			),
+		});
+
+		const sandbox = join(nuxt.options.buildDir, "smile")
+		if (!existsSync(sandbox)) mkdirSync(sandbox, { recursive: true })
+
+		await initializeDatabase(nuxt);
 	},
 });

@@ -15,7 +15,7 @@ const stroop = defineExperiment({
   autoSave: true,
 
   schema: z.object({
-    'index': z.number(),
+    'index': z.number().trialID(),
     'word': z.string(),
     'color': z.enum(['red', 'green', 'blue']),
     'type': z.enum(['unrelated', 'congruent', 'incongruent']),
@@ -35,7 +35,8 @@ const gonogo = defineExperiment({
   autoSave: true,
 
   schema: z.object({
-    'index': z.number(),
+    'index': z.number().trialID(),
+    'block': z.string().blockID(),
     'stimulus': z.string(),
     'RorP': z.enum(['R', 'P']),
     'GoNoGo': z.enum(['Go', 'NoGo']),
