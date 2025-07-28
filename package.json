@@ -27,8 +27,7 @@
     "lint": "eslint .",
     "test": "vitest run",
     "test:watch": "vitest watch",
-    "test:types": "vue-tsc --noEmit && cd playground && vue-tsc --noEmit",
-    "postinstall": "node -e \"console.log('Post-install completed')\""
+    "test:types": "vue-tsc --noEmit && cd playground && vue-tsc --noEmit"
   },
   "dependencies": {
     "@libsql/client": "^0.15.10",
@@ -78,6 +77,11 @@
     "typescript": "~5.8.3",
     "vitest": "^3.2.4",
     "vue-tsc": "^3.0.4"
+  },
+  "overrides": {
+    "nunjucks": {
+      "chokidar": "$chokidar"
+    }
   },
   "stackblitz": {
     "startCommand": "bun dev:prepare && bun dev"
