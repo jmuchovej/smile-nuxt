@@ -57,27 +57,29 @@ export interface ResolvedExperiment {
 }
 
 export const defineExperiment = (experiment: ExperimentBase): DefinedExperiment => {
-  const schema = (experiment.schema || z.object({}))
+  const schema = experiment.schema || z.object({});
 
   return {
     ...experiment,
     rootDir: "",
     schema,
-  }
-}
+  };
+};
 
-export const EXPERIMENT_TABLE_PREFIX = `_experiment`
+export const EXPERIMENT_TABLE_PREFIX = `_experiment`;
 
 const getTableName = (name: string) => {
-  return `${EXPERIMENT_TABLE_PREFIX}-${name}`
-}
+  return `${EXPERIMENT_TABLE_PREFIX}-${name}`;
+};
 
 export const resolveExperiment = (version: string, experiment: DefinedExperiment): ResolvedExperiment => {
   if (/^[a-z_][\w-]+$/i.test(version) === false) {
-    logger.warn([
-      `Experiment \`version=${version}\` is invalid.`,
-      'Experiment names must be valid JavaScript identifiers (`-` is allowed, too). Thus, this experiment will be ignored.',
-    ].join('\n'))
+    logger.warn(
+      [
+        `Experiment \`version=${version}\` is invalid.`,
+        "Experiment names must be valid JavaScript identifiers (`-` is allowed, too). Thus, this experiment will be ignored.",
+      ].join("\n")
+    );
   }
 
   const stimuli = resolveStimuli(experiment.rootDir, experiment.stimuli);
@@ -88,13 +90,14 @@ export const resolveExperiment = (version: string, experiment: DefinedExperiment
     version,
     allowRepeats: false,
     autoSave: false,
-    extra: {}
-  })
-}
+    extra: {},
+  });
+};
 
-export const resolveExperiments = (experiments: Record<string, DefinedExperiment>): Record<string, ResolvedExperiment> => {
+export const resolveExperiments = (
+  experiments: Record<string, DefinedExperiment>
+): Record<string, ResolvedExperiment> => {
   return Object.fromEntries(
-    Object.entries(experiments)
-      .map(([version, experiment]) => [version, resolveExperiment(version, experiment)])
-  )
-}
+    Object.entries(experiments).map(([version, experiment]) => [version, resolveExperiment(version, experiment)])
+  );
+};

@@ -12,12 +12,12 @@
 <script setup lang="ts">
 export type FlankerStimulus = {
   text: string;
-  type: `congruent` | `incongruent`
-}
+  type: `congruent` | `incongruent`;
+};
 
 const props = defineProps<{
-  stimulus: FlankerStimulus
-}>()
+  stimulus: FlankerStimulus;
+}>();
 </script>
 
 <style scoped>

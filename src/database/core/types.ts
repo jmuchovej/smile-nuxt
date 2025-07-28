@@ -1,5 +1,5 @@
-import { z } from "zod/v4";
-import * as schemas from "./schemas";
+import type { z } from "zod/v4";
+import type * as schemas from "./schemas";
 
 export type SmileColumnType = z.infer<typeof schemas.columnTypeSchema>;
 export type SmileColumnConstraints = z.infer<typeof schemas.columnConstraintsSchema>;

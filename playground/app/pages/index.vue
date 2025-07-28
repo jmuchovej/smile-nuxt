@@ -1,8 +1,7 @@
 <script setup lang="ts">
 // import { SmileLayout } from '#components';
 
-definePageMeta({
-})
+definePageMeta({});
 </script>
 
 <template>

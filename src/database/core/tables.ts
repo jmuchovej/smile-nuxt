@@ -7,7 +7,7 @@ export const participantSchema = z.object({
   platform: z.string().index(),
   startedAt: z.date().index(),
   completedAt: z.date().optional(),
-  status: z.enum(['active', 'completed', 'withdrawn']).default('active').index(),
+  status: z.enum(["active", "completed", "withdrawn"]).default("active").index(),
   metadata: z.object({}).optional(),
 });
 
@@ -31,7 +31,7 @@ export const blockSchema = z.object({
   blockNumber: z.number().index(),
   blockType: z.string().optional(),
   startedAt: z.date().index(),
-  completedAt: z.date().optional()
+  completedAt: z.date().optional(),
 });
 
 // Trials table schema
@@ -46,5 +46,5 @@ export const trialSchema = z.object({
   respondedAt: z.date().optional(),
   response: z.object({}).optional(),
   reactionTime: z.number().optional(),
-  metadata: z.object({}).optional()
+  metadata: z.object({}).optional(),
 });

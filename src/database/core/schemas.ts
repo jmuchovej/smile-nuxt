@@ -1,13 +1,7 @@
 import { z } from "zod/v4";
 
 // Core column types that Smile supports
-export const columnTypeSchema = z.enum([
-  'text',
-  'number',
-  'boolean',
-  'date',
-  'json',
-]);
+export const columnTypeSchema = z.enum(["text", "number", "boolean", "date", "json"]);
 
 export const columnConstraintsSchema = z.object({
   primaryKey: z.boolean().optional(),
@@ -17,7 +11,7 @@ export const columnConstraintsSchema = z.object({
   trialID: z.boolean().optional(),
   blockID: z.boolean().optional(),
   conditionID: z.boolean().optional(),
-})
+});
 
 export const columnSchema = z.object({
   type: columnTypeSchema,
@@ -37,17 +31,25 @@ export const indexSchema = z.object({
 const indexesSchema = z.array(indexSchema);
 
 // Intermediate table representation
-export const tableSchema = z.object({
-  name: z.string().min(1),
-  columns: z.record(z.string(), columnSchema).refine(
-    (cols) => Object.keys(cols).length > 0,
-    { message: "Tables must have at least one column" },
-  ),
-  compositeKeys: compositeKeysSchema,
-  indexes: indexesSchema,
-}).refine((table) => {
-  const indexes = table.indexes.map(idx => idx.name);
-  return indexes.length === (new Set(indexes).size);
-}, { message: "Found duplicate indexes!", }).refine((table) => {
-  return table.indexes.every(index => index.columns.every(column => column in table.columns));
-}, { message: "Index references non-existent columns..." })
+export const tableSchema = z
+  .object({
+    name: z.string().min(1),
+    columns: z
+      .record(z.string(), columnSchema)
+      .refine((cols) => Object.keys(cols).length > 0, { message: "Tables must have at least one column" }),
+    compositeKeys: compositeKeysSchema,
+    indexes: indexesSchema,
+  })
+  .refine(
+    (table) => {
+      const indexes = table.indexes.map((idx) => idx.name);
+      return indexes.length === new Set(indexes).size;
+    },
+    { message: "Found duplicate indexes!" }
+  )
+  .refine(
+    (table) => {
+      return table.indexes.every((index) => index.columns.every((column) => column in table.columns));
+    },
+    { message: "Index references non-existent columns..." }
+  );

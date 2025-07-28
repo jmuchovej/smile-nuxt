@@ -1,8 +1,8 @@
 export default defineNuxtConfig({
   compatibilityDate: "2024-11-01",
-  modules: ['../src/module', ], // "@nuxt/image", "@nuxt/fonts"],
+  modules: ["../src/module"], // "@nuxt/image", "@nuxt/fonts"],
   devServer: {
-    port: 7645
+    port: 7645,
   },
   dev: true,
   pages: true,
@@ -10,9 +10,7 @@ export default defineNuxtConfig({
   icon: {
     provider: "iconify",
   },
-  css: ["@/assets/css/main.css"],
-  smile: {
-  },
+  smile: {},
   devtools: {
     enabled: true,
     timeline: {
@@ -23,4 +21,4 @@ export default defineNuxtConfig({
     renderJsonPayloads: false,
     watcher: "chokidar",
   },
-})
+});

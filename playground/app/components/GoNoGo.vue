@@ -8,11 +8,11 @@
 export type GoNoGoStimulus = {
   image: string;
   go: boolean;
-}
+};
 
 const props = defineProps<{
-  stimulus: GoNoGoStimulus
-}>()
+  stimulus: GoNoGoStimulus;
+}>();
 </script>
 
 <style scoped>

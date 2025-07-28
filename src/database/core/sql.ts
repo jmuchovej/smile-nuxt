@@ -3,19 +3,9 @@ import type { SmileColumn, SmileTable } from "./types";
 
 const sqlite = new SQLiteSyncDialect();
 
-/**
- * Sanitize names for use as SQL identifiers
- */
-function sanitizeName(name: string): string {
-  return name
-    .replace(/[^a-zA-Z0-9_]/g, '_')
-    .replace(/^[0-9]/, '_$&')
-    .toLowerCase();
-}
-
 export const getDropTableIfExistsQuery = (table: SmileTable): string => {
   return `DROP TABLE IF EXISTS ${sqlite.escapeName(table.name)}`;
-}
+};
 
 /**
  * Generate SQL CREATE TABLE statement from Smile table (for debugging/migration)
@@ -28,42 +18,42 @@ export const getCreateTableQuery = (table: SmileTable): string => {
     const parts = [sqlite.escapeName(name), getSQLType(column)];
 
     if (!column.constraints.optional) {
-      parts.push('NOT NULL');
+      parts.push("NOT NULL");
     }
 
     if (column.constraints.unique && !column.constraints.primaryKey) {
-      parts.push('UNIQUE');
+      parts.push("UNIQUE");
     }
 
-    columns.push(`  ${parts.join(' ')}`);
+    columns.push(`  ${parts.join(" ")}`);
   });
 
   // Add composite primary key
   if (table.compositeKeys.primary && table.compositeKeys.primary.length > 0) {
-    const pkFields = table.compositeKeys.primary.map(sqlite.escapeName).join(', ');
+    const pkFields = table.compositeKeys.primary.map(sqlite.escapeName).join(", ");
     columns.push(`  PRIMARY KEY (${pkFields})`);
   }
 
-  return `CREATE TABLE ${sqlite.escapeName(table.name)} (\n${columns.join(',\n')}\n)`;
-}
+  return `CREATE TABLE ${sqlite.escapeName(table.name)} (\n${columns.join(",\n")}\n)`;
+};
 
 /**
  * Convert Smile column type to SQL type string
  */
-function getSQLType(column: SmileColumn): 'TEXT' | 'INTEGER' {
+function getSQLType(column: SmileColumn): "TEXT" | "INTEGER" {
   switch (column.type) {
-    case 'text':
-    case 'json':
-    case 'date':
-      return 'TEXT';
-    case 'number':
-    case 'boolean':
-      return 'INTEGER';
+    case "text":
+    case "json":
+    case "date":
+      return "TEXT";
+    case "number":
+    case "boolean":
+      return "INTEGER";
   }
 }
 
 export const getCreateIndexQueries = (table: SmileTable): string[] => {
-  let queries: string[] = [];
+  const queries: string[] = [];
   for (const index of Object.values(table.indexes ?? {})) {
     const { name, columns, unique } = index;
     const query = [
@@ -74,9 +64,11 @@ export const getCreateIndexQueries = (table: SmileTable): string[] => {
       "ON",
       sqlite.escapeName(table.name),
       `(${columns.map(sqlite.escapeName).join(", ")})`,
-    ].filter(Boolean).join(" ");
+    ]
+      .filter(Boolean)
+      .join(" ");
     queries.push(query);
   }
 
   return queries;
-}
+};

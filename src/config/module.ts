@@ -1,4 +1,4 @@
-import type { ResolvedExperiment } from "./experiment"
+import type { ResolvedExperiment } from "./experiment";
 
 // declare module '#smile/experiments' {
 //   export const experiments: Record<string, unknown>
@@ -6,10 +6,10 @@ import type { ResolvedExperiment } from "./experiment"
 
 declare module "@nuxt/schema" {
   interface RuntimeConfig {
-    smile: SmileRuntimeConfig
+    smile: SmileRuntimeConfig;
   }
   interface PublicRuntimeConfig {
-    smile: SmilePublicRuntimeConfig
+    smile: SmilePublicRuntimeConfig;
   }
 }
 
@@ -18,16 +18,16 @@ export interface SmileRuntimeConfig {
   experiments: Record<string, ResolvedExperiment>;
   database: {
     path: string;
-  }
+  };
 }
 
 export interface SmilePublicRuntimeConfig {
   database: {
     studioPort: number;
-  }
+  };
 }
 
 export interface SmileAppConfig {
-  activeExperiment: string
-  availableExperiments: string[]
+  activeExperiment: string;
+  availableExperiments: string[];
 }

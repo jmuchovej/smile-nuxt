@@ -12,7 +12,7 @@
 </template>
 
 <script setup lang="ts">
-const route = useRoute()
+const route = useRoute();
 
 const { service } = route.params;
 
@@ -20,6 +20,6 @@ const { service } = route.params;
 await useFetch(`/api/welcome/${service}`, {
   query: route.query,
   responseType: `text`,
-  method: `post`
-})
+  method: `post`,
+});
 </script>

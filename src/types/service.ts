@@ -1,4 +1,4 @@
-import { z } from "zod"
+import { z } from "zod";
 
 const BaseServiceSchema = z.object({
   url: z.url(),
@@ -8,23 +8,23 @@ const BaseServiceSchema = z.object({
 const ProlificSchema = z.object({
   ...BaseServiceSchema.omit({ url: true }).shape,
   url: z.url().default("https://app.prolific.com/submissions/complete?cc=").optional(),
-  type: z.literal('prolific'),
+  type: z.literal("prolific"),
 });
 
 const MTurkSchema = z.object({
   ...BaseServiceSchema.omit({ url: true }).shape,
   url: z.url().default("https://www.mturk.com/mturk/externalSubmit").optional(),
-  type: z.literal('mturk'),
+  type: z.literal("mturk"),
 });
 
 const CitizenScienceSchema = z.object({
   ...BaseServiceSchema.shape,
-  type: z.literal('citizen-science'),
+  type: z.literal("citizen-science"),
 });
 
 const SONASchema = z.object({
   ...BaseServiceSchema.shape,
-  type: z.literal('sona'),
+  type: z.literal("sona"),
 });
 
 export const ExperimentServiceSchema = z.discriminatedUnion("type", [
@@ -32,7 +32,7 @@ export const ExperimentServiceSchema = z.discriminatedUnion("type", [
   MTurkSchema,
   CitizenScienceSchema,
   SONASchema,
-])
+]);
 
 export type ExperimentService = z.infer<typeof ExperimentServiceSchema>;
 export type Prolific = z.infer<typeof ProlificSchema>;

@@ -6,28 +6,28 @@
  * that can be used by both SQL generation and Drizzle conversion.
  */
 import type { ZodType } from "zod";
-import { ZodNullable, ZodObject, ZodString, ZodDate, ZodOptional, ZodNumber, ZodDefault } from "zod";
+import { ZodNullable, type ZodObject, ZodString, ZodDate, ZodOptional, ZodNumber, ZodDefault } from "zod";
 
 import { tableSchema } from "./schemas";
-import type { SmileTable, SmileColumn, SmileColumnType, SmileColumnConstraints, } from "./types";
+import type { SmileTable, SmileColumn, SmileColumnType, SmileColumnConstraints } from "./types";
 
 export const getValidatedTable = (name: string, schema: ZodObject): SmileTable => {
   const table = fromZod(name, schema);
   tableSchema.parse(table);
   return table;
-}
+};
 
 /**
  * Convert a Zod schema to Smile table abstraction
  */
 export function fromZod(tableName: string, schema: ZodObject): SmileTable {
   const columns: Record<string, SmileColumn> = {};
-  const indexes: SmileTable['indexes'] = [];
+  const indexes: SmileTable["indexes"] = [];
 
   // Process each field in the Zod schema
   Object.entries(schema.shape).forEach(([columne, schema]) => {
     // Skip meta fields that aren't actual data columns
-    if (['path', 'extension'].includes(columne)) return;
+    if (["path", "extension"].includes(columne)) return;
 
     const constraints = getSmileConstraints(schema as ZodType) || {};
 
@@ -35,7 +35,7 @@ export function fromZod(tableName: string, schema: ZodObject): SmileTable {
       type: inferSmileColumnType(schema as ZodType),
       constraints: {
         ...constraints,
-        optional: isOptionalField(schema as ZodType)
+        optional: isOptionalField(schema as ZodType),
       },
     };
 
@@ -43,7 +43,7 @@ export function fromZod(tableName: string, schema: ZodObject): SmileTable {
     if (constraints.index) {
       indexes.push({
         name: `idx_${tableName}_${columne}`,
-        columns: [columne]
+        columns: [columne],
       });
     }
   });
@@ -55,16 +55,16 @@ export function fromZod(tableName: string, schema: ZodObject): SmileTable {
     name: tableName,
     columns,
     compositeKeys: {
-      primary: primaryKeyFields.length > 0 ? primaryKeyFields : undefined
+      primary: primaryKeyFields.length > 0 ? primaryKeyFields : undefined,
     },
-    indexes
+    indexes,
   };
 }
 
 class UnknownColumnError extends Error {
   constructor(message: string) {
     super(message);
-    this.name = 'UnknownColumnError';
+    this.name = "UnknownColumnError";
   }
 }
 
@@ -77,42 +77,34 @@ function inferSmileColumnType(zodType: ZodType): SmileColumnType {
 
   switch (def.type) {
     case "number":
-      return 'number';
+      return "number";
     case "boolean":
-      return 'boolean';
+      return "boolean";
     case "date":
-      return 'date';
+      return "date";
     case "array":
     case "object":
-      return 'json';
+      return "json";
     case "string":
     case "enum":
-      return 'text';
+      return "text";
   }
 
-  throw new UnknownColumnError(`Cannot convert ${def.type} to a valid \`SmileColumn\`!`)
+  throw new UnknownColumnError(`Cannot convert ${def.type} to a valid \`SmileColumn\`!`);
 }
 
 /**
  * Check if a field is optional (nullable, optional, or has default)
  */
 function isOptionalField(zodType: ZodType): boolean {
-  return (
-    zodType instanceof ZodOptional ||
-    zodType instanceof ZodNullable ||
-    zodType instanceof ZodDefault
-  )
+  return zodType instanceof ZodOptional || zodType instanceof ZodNullable || zodType instanceof ZodDefault;
 }
 
 /**
  * Unwrap nested Zod types to get the core type
  */
 function unwrapZodType(zodType: ZodType): ZodType {
-  if (
-    zodType instanceof ZodOptional ||
-    zodType instanceof ZodNullable ||
-    zodType instanceof ZodDefault
-  ) {
+  if (zodType instanceof ZodOptional || zodType instanceof ZodNullable || zodType instanceof ZodDefault) {
     return unwrapZodType(zodType.unwrap() as any as ZodType);
   }
 
@@ -165,18 +157,14 @@ function buildCompositePrimaryKey(columns: Record<string, SmileColumn>): string[
     throw new Error("Only one field can be marked as conditionID");
   }
 
-  const compositeKey: string[] = [
-    ...trialFields,
-    ...blockFields,
-    ...conditionFields,
-  ].filter(Boolean);
+  const compositeKey: string[] = [...trialFields, ...blockFields, ...conditionFields].filter(Boolean);
 
   return compositeKey;
 }
 
 declare module "zod" {
   interface GlobalMeta {
-    smile?: SmileColumnConstraints
+    smile?: SmileColumnConstraints;
   }
 }
 
@@ -279,7 +267,7 @@ declare module "zod" {
      * Create an index for this column
      * Example: z.date().index()
      */
-     index(): ZodDate;
+    index(): ZodDate;
   }
 }
 
@@ -290,71 +278,71 @@ function addSmileConstraint(schema: ZodType, constraints: Partial<SmileColumnCon
     ...existing,
     smile: {
       ...existing?.smile,
-      ...constraints
-      }
+      ...constraints,
+    },
   });
 }
 
-ZodDefault.prototype.index = function() {
+ZodDefault.prototype.index = function () {
   return addSmileConstraint(this, { index: true, optional: true });
 };
 
-ZodOptional.prototype.index = function() {
+ZodOptional.prototype.index = function () {
   return addSmileConstraint(this, { index: true, optional: true });
 };
 
 // String constraints
-ZodString.prototype.primaryKey = function() {
+ZodString.prototype.primaryKey = function () {
   return addSmileConstraint(this, { primaryKey: true });
 };
 
-ZodString.prototype.unique = function() {
+ZodString.prototype.unique = function () {
   return addSmileConstraint(this, { unique: true });
 };
 
-ZodString.prototype.index = function() {
+ZodString.prototype.index = function () {
   return addSmileConstraint(this, { index: true });
 };
 
-ZodString.prototype.trialID = function() {
+ZodString.prototype.trialID = function () {
   return addSmileConstraint(this, { trialID: true });
 };
 
-ZodString.prototype.blockID = function() {
+ZodString.prototype.blockID = function () {
   return addSmileConstraint(this, { blockID: true });
 };
 
-ZodString.prototype.conditionID = function() {
+ZodString.prototype.conditionID = function () {
   return addSmileConstraint(this, { conditionID: true });
 };
 
 // Number constraints
-ZodNumber.prototype.primaryKey = function() {
+ZodNumber.prototype.primaryKey = function () {
   return addSmileConstraint(this, { primaryKey: true });
 };
 
-ZodNumber.prototype.unique = function() {
+ZodNumber.prototype.unique = function () {
   return addSmileConstraint(this, { unique: true });
 };
 
-ZodNumber.prototype.index = function() {
+ZodNumber.prototype.index = function () {
   return addSmileConstraint(this, { index: true });
 };
 
-ZodNumber.prototype.trialID = function() {
+ZodNumber.prototype.trialID = function () {
   return addSmileConstraint(this, { trialID: true });
 };
 
-ZodNumber.prototype.blockID = function() {
+ZodNumber.prototype.blockID = function () {
   return addSmileConstraint(this, { blockID: true });
 };
 
-ZodNumber.prototype.conditionID = function() {
+ZodNumber.prototype.conditionID = function () {
   return addSmileConstraint(this, { conditionID: true });
 };
 
 // Date constraints
-ZodDate.prototype.index = function() {
+ZodDate.prototype.index = function () {
   return addSmileConstraint(this, { index: true });
 };
 
