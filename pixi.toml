@@ -1,0 +1,14 @@
+[workspace]
+authors = ["John Muchovej <jmuchovej@users.noreply.github.com>"]
+channels = ["conda-forge", "https://prefix.dev/brads-forge"]
+name = "nuxt-smile"
+platforms = ["osx-arm64", "linux-aarch64", "osx-64", "linux-64"]
+version = "0.1.0"
+
+[tasks]
+
+[dependencies]
+nodejs = ">=24.4.0,<24.5"
+bun = ">=1.2.18,<2"
+just = ">=1.42.1,<2"
+pnpm = ">=10.13.1,<11"

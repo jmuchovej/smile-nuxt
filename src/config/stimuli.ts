@@ -2,7 +2,7 @@ import pl from "nodejs-polars";
 import { basename, dirname, extname, join, relative } from "pathe";
 import { globSync, type GlobOptions } from "tinyglobby";
 import { z, type ZodObject } from "zod";
-import { logger } from "../utils/dev";
+import { logger } from "../utils/module";
 
 export type StimuliSource = string | string[];
 

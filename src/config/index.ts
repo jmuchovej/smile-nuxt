@@ -1,7 +1,7 @@
 import z from "zod";
 import type { Nuxt } from "nuxt/schema";
 import { join, relative } from "pathe";
-import { logger } from "../utils/dev";
+import { logger } from "../utils/module";
 import { resolveExperiments, defineExperiment, type DefinedExperiment } from "./experiment";
 import { defineStimuli } from "./stimuli";
 import { createDefineConfig, loadConfig, watchConfig, type WatchConfigOptions } from "c12";

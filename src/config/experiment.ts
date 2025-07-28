@@ -1,6 +1,6 @@
 import { z, type ZodObject } from "zod";
 import type { ExperimentService } from "../types/service";
-import { logger } from "../utils/dev";
+import { logger } from "../utils/module";
 import defu from "defu";
 import type { DefinedStimuli, ResolvedStimuli } from "./stimuli";
 import { resolveStimuli } from "./stimuli";

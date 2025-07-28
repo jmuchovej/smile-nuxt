@@ -1,0 +1,3 @@
+[build]
+command = "pnpm dev:build"
+publish = "playground/dist"
