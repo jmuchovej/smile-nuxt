@@ -1,5 +1,4 @@
-import nunjucks from "nunjucks";
-import { writeFile } from "node:fs/promises";
+import { readFile, writeFile } from "node:fs/promises";
 import { ChildProcess, spawn } from "node:child_process";
 import { join, dirname } from "pathe";
 import { defu } from "defu";
@@ -9,11 +8,7 @@ import type { SmileColumn, SmileTable } from "../core/types";
 import { fromZod, getValidatedTable } from "../core/zod";
 import { getMetaTables } from "..";
 import type { SmileRuntimeConfig, ResolvedExperiment } from "../../config";
-
-// Configure Nunjucks with the template directory
-const { resolve } = createResolver(import.meta.url);
-const templateDir = resolve('.');
-nunjucks.configure(templateDir, { autoescape: false });
+import Handlebars from "handlebars";
 
 export const spawnDrizzleStudio = async (nuxt: Nuxt) => {
   if (!nuxt.options.dev) return;
@@ -43,11 +38,14 @@ export const spawnDrizzleStudio = async (nuxt: Nuxt) => {
 
   let studioProcess: ChildProcess | undefined;
 
+  const { resolve } = createResolver(import.meta.url);
+  const templateDir = resolve('.');
+
   nuxt.hook("build:before", async () => {
-    const config = generateDrizzleConfig(smileRuntimeConfig);
+    const config = await generateDrizzleConfig(templateDir, smileRuntimeConfig);
     await writeFile(join(root, "drizzle.config.ts"), config);
 
-    const schema = generateSchemaFile(Object.values(smileRuntimeConfig.experiments));
+    const schema = await generateSchemaFile(templateDir, Object.values(smileRuntimeConfig.experiments));
     await writeFile(join(root, "schema.ts"), schema);
   });
 
@@ -63,15 +61,17 @@ export const spawnDrizzleStudio = async (nuxt: Nuxt) => {
   });
 }
 
-const generateDrizzleConfig = (runtimeConfig: SmileRuntimeConfig): string => {
+async function generateDrizzleConfig(templateDir: string, runtimeConfig: SmileRuntimeConfig): string {
   const templateData = {
     databasePath: runtimeConfig.database.path,
   };
 
-  return nunjucks.render("drizzle.config.ts.njk", templateData);
+  const file = await readFile(join(templateDir, `drizzle.config.ts.handlebars`), { encoding: "utf-8" })
+  const template = Handlebars.compile(file)
+  return template(templateData);
 }
 
-const generateSchemaFile = (experiments: ResolvedExperiment[]): string => {
+async function generateSchemaFile(templateDir: string, experiments: ResolvedExperiment[]): string {
   const tables = [
     ...getMetaTables(),
     ...experiments.flatMap((experiment) => {
@@ -93,10 +93,12 @@ const generateSchemaFile = (experiments: ResolvedExperiment[]): string => {
     })),
   }
 
-  return nunjucks.render('./schema.ts.njk', templateData);
+  const file = await readFile(join(templateDir, `schema.ts.handlebars`), { encoding: "utf-8" })
+  const template = Handlebars.compile(file)
+  return template(templateData);
 }
 
-const generateColumnDefinition = (column: SmileColumn) => {
+function generateColumnDefinition(column: SmileColumn): string {
   let def = '';
   switch (column.type) {
     case "text": def = `text()`; break;

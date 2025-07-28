@@ -13,11 +13,11 @@ const jsonType = customType<{ data: unknown; driverData: string }>({
   fromDriver(value: string) { return JSON.parse(value); }
 });
 
-{% for table in tables -%}
-export const {{ table.tsName }} = sqliteTable('{{ table.sqlName }}', {
-  {% for column in table.columns -%}
-  {{- column.name }}: {{ column.definition }},
-  {% endfor %}
+{{#each tables }}
+export const {{ tsName }} = sqliteTable('{{ sqlName }}', {
+  {{#each columns }}
+  {{ name }}: {{ definition }},
+  {{/each }}
 });
 
-{% endfor %}
+{{/each }}

@@ -67,21 +67,14 @@
     "@types/nunjucks": "^3.2.6",
     "@types/ws": "^8.18.1",
     "changelogen": "^0.6.2",
-    "chokidar": "^4.0.3",
     "drizzle-kit": "^0.31.4",
     "eslint": "^9.32.0",
-    "json-schema-to-typescript": "^15.0.4",
+    "handlebars": "^4.7.8",
     "nodejs-polars": "^0.19.0",
-    "nunjucks": "^3.2.4",
     "nuxt": "^4.0.1",
     "typescript": "~5.8.3",
     "vitest": "^3.2.4",
     "vue-tsc": "^3.0.4"
-  },
-  "overrides": {
-    "nunjucks": {
-      "chokidar": "$chokidar"
-    }
   },
   "stackblitz": {
     "startCommand": "bun dev:prepare && bun dev"
