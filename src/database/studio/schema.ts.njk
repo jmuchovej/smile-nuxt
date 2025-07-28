@@ -1,0 +1,23 @@
+import { sqliteTable, text, integer, customType } from 'drizzle-orm/sqlite-core';
+
+// Custom types
+const dateType = customType<{ data: Date; driverData: string }>({
+  dataType() { return 'text'; },
+  toDriver(value: Date) { return value.toISOString(); },
+  fromDriver(value: string) { return new Date(value); }
+});
+
+const jsonType = customType<{ data: unknown; driverData: string }>({
+  dataType() { return 'text'; },
+  toDriver(value: unknown) { return JSON.stringify(value); },
+  fromDriver(value: string) { return JSON.parse(value); }
+});
+
+{% for table in tables -%}
+export const {{ table.tsName }} = sqliteTable('{{ table.sqlName }}', {
+  {% for column in table.columns -%}
+  {{- column.name }}: {{ column.definition }},
+  {% endfor %}
+});
+
+{% endfor %}

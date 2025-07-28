@@ -7,6 +7,7 @@ import type { Nuxt } from "nuxt/schema";
 import { defu } from "defu";
 import { loadSmileConfig } from "./config";
 import { logger, registerModule } from "./utils/module";
+import { spawnDrizzleStudio } from "./database/studio";
 import { initializeDatabase } from "./database";
 import { join } from "pathe";
 import { existsSync, mkdirSync } from "node:fs";
@@ -23,6 +24,9 @@ export interface SmileModuleOptions {
   database?: {
     type: "sqlite" | string,
     url: string;
+    studio: {
+      port: number;
+    }
   };
 }
 
@@ -39,6 +43,9 @@ export default defineNuxtModule<SmileModuleOptions>({
 		database: {
 			type: "sqlite",
 			url: "file:./smile.db",
+			studio: {
+			  port: 7646,
+			}
 		},
 	},
 	async setup(options: SmileModuleOptions, nuxt: Nuxt) {
@@ -91,5 +98,6 @@ export default defineNuxtModule<SmileModuleOptions>({
 		if (!existsSync(sandbox)) mkdirSync(sandbox, { recursive: true })
 
 		await initializeDatabase(nuxt);
+		await spawnDrizzleStudio(nuxt);
 	},
 });

@@ -13,13 +13,6 @@ declare module "@nuxt/schema" {
   }
 }
 
-export interface SmileModuleOptions {
-  database?: {
-    type: "sqlite" | string,
-    url: string;
-  };
-}
-
 export interface SmileRuntimeConfig {
   activeExperiment: string;
   experiments: Record<string, ResolvedExperiment>;
@@ -29,6 +22,9 @@ export interface SmileRuntimeConfig {
 }
 
 export interface SmilePublicRuntimeConfig {
+  database: {
+    studioPort: number;
+  }
 }
 
 export interface SmileAppConfig {
