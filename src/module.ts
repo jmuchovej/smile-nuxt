@@ -6,6 +6,7 @@ import type { Nuxt } from "nuxt/schema";
 import { loadSmileConfig } from "./config";
 import { initializeDatabase } from "./database";
 import { spawnDrizzleStudio } from "./database/studio";
+import { injectRuntimeTools } from "./injections";
 import { generateRoutingTable } from "./router";
 import { createSmileBuildConfig } from "./types/build-config";
 import { logger, registerModule } from "./utils/module";
@@ -97,5 +98,7 @@ export default defineNuxtModule<SmileModuleOptions>({
     await spawnDrizzleStudio(buildConfig);
     logger.debug("Generating route table...");
     await generateRoutingTable(buildConfig);
+    logger.debug("Injecting SmileJS features into Nuxt");
+    await injectRuntimeTools(buildConfig);
   },
 });

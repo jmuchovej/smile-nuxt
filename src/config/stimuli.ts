@@ -1,9 +1,9 @@
 import pl from "nodejs-polars";
 import { basename, dirname, extname, join } from "pathe";
+import { kebabCase } from "scule";
 import { type GlobOptions, globSync } from "tinyglobby";
 import { type ZodObject, z } from "zod";
 import { logger } from "../utils/module";
-import { kebabCase } from "scule";
 
 export type StimuliSource = string | string[];
 
