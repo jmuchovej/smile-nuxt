@@ -1,12 +1,12 @@
-import "./database/zod";
-import { existsSync, mkdirSync } from "node:fs";
 import { createResolver, defineNuxtModule } from "@nuxt/kit";
 import { defu } from "defu";
 import type { Nuxt } from "nuxt/schema";
-import { join } from "pathe";
 import { loadSmileConfig } from "./config";
 import { initializeDatabase } from "./database";
 import { spawnDrizzleStudio } from "./database/studio";
+import "./database/zod";
+import { generateRoutingTable } from "./router";
+import { createSmileBuildConfig } from "./types/build-config";
 import { logger, registerModule } from "./utils/module";
 
 export type * from "./config";
@@ -45,7 +45,7 @@ export default defineNuxtModule<SmileModuleOptions>({
       },
     },
   },
-  async setup(options: SmileModuleOptions, nuxt: Nuxt) {
+  async setup(nuxt: Nuxt) {
     const { resolve } = createResolver(import.meta.url);
     nuxt.options.alias["#smile"] = resolve("./runtime");
 
@@ -88,10 +88,13 @@ export default defineNuxtModule<SmileModuleOptions>({
       experiments,
     });
 
-    const sandbox = join(nuxt.options.buildDir, "smile");
-    if (!existsSync(sandbox)) mkdirSync(sandbox, { recursive: true });
+    const buildConfig = createSmileBuildConfig(nuxt, experiments);
 
-    await initializeDatabase(nuxt);
-    await spawnDrizzleStudio(nuxt);
+    logger.debug("Dispatching database initializer...");
+    await initializeDatabase(buildConfig);
+    logger.debug("Dispatching drizzle studio spawner...");
+    await spawnDrizzleStudio(buildConfig);
+    logger.debug("Generating route table...");
+    await generateRoutingTable(buildConfig);
   },
 });
