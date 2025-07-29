@@ -1,4 +1,5 @@
 import defu from "defu";
+import { kebabCase } from "scule";
 import { type ZodObject, z } from "zod";
 import type { ExperimentService } from "../types/service";
 import { logger } from "../utils/module";
@@ -69,7 +70,7 @@ export function defineExperiment(experiment: ExperimentBase): DefinedExperiment 
 export const EXPERIMENT_TABLE_PREFIX = `_experiment`;
 
 function getTableName(name: string) {
-  return `${EXPERIMENT_TABLE_PREFIX}-${name}`;
+  return `${EXPERIMENT_TABLE_PREFIX}-${kebabCase(name)}`;
 }
 
 export function resolveExperiment(version: string, experiment: DefinedExperiment): ResolvedExperiment {

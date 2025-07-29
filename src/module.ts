@@ -1,10 +1,11 @@
+// biome-ignore assist/source/organizeImports: Must be first to ensure zod extensions are loaded
+import "./database/zod";
 import { createResolver, defineNuxtModule } from "@nuxt/kit";
 import { defu } from "defu";
 import type { Nuxt } from "nuxt/schema";
 import { loadSmileConfig } from "./config";
 import { initializeDatabase } from "./database";
 import { spawnDrizzleStudio } from "./database/studio";
-import "./database/zod";
 import { generateRoutingTable } from "./router";
 import { createSmileBuildConfig } from "./types/build-config";
 import { logger, registerModule } from "./utils/module";
@@ -45,8 +46,9 @@ export default defineNuxtModule<SmileModuleOptions>({
       },
     },
   },
-  async setup(nuxt: Nuxt) {
-    const { resolve } = createResolver(import.meta.url);
+  async setup(_options: SmileModuleOptions, nuxt: Nuxt) {
+    const resolver = createResolver(import.meta.url);
+    const { resolve } = resolver;
     nuxt.options.alias["#smile"] = resolve("./runtime");
 
     nuxt.options.pages = nuxt.options.pages || {};
@@ -64,7 +66,6 @@ export default defineNuxtModule<SmileModuleOptions>({
       css: ["~assets/css/main.css"],
     });
 
-    nuxt.options.nitro = defu(nuxt.options.nitro, {});
     nuxt.options.appConfig = defu(nuxt.options.appConfig, { smile: {} });
     nuxt.options.runtimeConfig = defu(nuxt.options.runtimeConfig, {
       smile: {},
@@ -88,7 +89,7 @@ export default defineNuxtModule<SmileModuleOptions>({
       experiments,
     });
 
-    const buildConfig = createSmileBuildConfig(nuxt, experiments);
+    const buildConfig = createSmileBuildConfig(nuxt, experiments, resolver);
 
     logger.debug("Dispatching database initializer...");
     await initializeDatabase(buildConfig);

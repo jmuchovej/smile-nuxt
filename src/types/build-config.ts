@@ -1,4 +1,5 @@
 import { existsSync, mkdirSync } from "node:fs";
+import type { Resolver } from "@nuxt/kit";
 import type { Nuxt } from "nuxt/schema";
 import { dirname, join } from "pathe";
 import type { ResolvedExperiment } from "../config";
@@ -23,20 +24,28 @@ export interface SmileBuildConfig {
 
   // Runtime configuration references
   nuxt: Nuxt;
+
+  resolver: Resolver;
 }
 
-export function createSmileBuildConfig(nuxt: Nuxt, experiments: SmileBuildConfig["experiments"]): SmileBuildConfig {
+export function createSmileBuildConfig(
+  nuxt: Nuxt,
+  experiments: SmileBuildConfig["experiments"],
+  resolver: Resolver
+): SmileBuildConfig {
   const buildDir = nuxt.options.buildDir;
   const rootDir = nuxt.options.rootDir;
   const sandbox = join(buildDir, "smile");
-  const databasePath = join(sandbox, "database", "smile.db");
+  const database = join(sandbox, "database");
 
-  if (!existsSync(sandbox)) mkdirSync(sandbox, { recursive: true });
-  if (!existsSync(dirname(databasePath))) mkdirSync(dirname(databasePath), { recursive: true });
+  const buildPaths = [sandbox, database];
+  for (const path of buildPaths) {
+    if (!existsSync(path)) mkdirSync(path, { recursive: true });
+  }
 
   return {
     paths: {
-      database: databasePath,
+      database,
       buildDir,
       rootDir,
       sandbox,
@@ -51,5 +60,7 @@ export function createSmileBuildConfig(nuxt: Nuxt, experiments: SmileBuildConfig
     },
 
     nuxt,
+
+    resolver,
   };
 }

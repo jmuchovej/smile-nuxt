@@ -1,18 +1,11 @@
-import { createClient } from "@libsql/client";
 import { sql } from "drizzle-orm";
-import { drizzle, type LibSQLDatabase } from "drizzle-orm/libsql";
+import type { LibSQLDatabase } from "drizzle-orm/libsql";
 import type pl from "nodejs-polars";
 import type { ZodObject } from "zod";
-import type { ResolvedExperiment, ResolvedStimuli, ResolvedStimuliSource } from "../config";
+import type { ResolvedStimuli, ResolvedStimuliSource } from "../config";
 import { logger } from "../utils/module";
 import { type DrizzledSmileTable, toDrizzle } from "./drizzle";
 import type { SmileTable } from "./types";
-
-interface SeedOptions {
-  databasePath: string;
-  experiments: ResolvedExperiment[];
-  rootDir: string;
-}
 
 export async function seedStimuliTable(db: LibSQLDatabase, table: SmileTable, stimuli: ResolvedStimuli) {
   const { name, schema, sources } = stimuli;

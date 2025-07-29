@@ -3,6 +3,7 @@ import { basename, dirname, extname, join } from "pathe";
 import { type GlobOptions, globSync } from "tinyglobby";
 import { type ZodObject, z } from "zod";
 import { logger } from "../utils/module";
+import { kebabCase } from "scule";
 
 export type StimuliSource = string | string[];
 
@@ -15,7 +16,7 @@ export interface StimuliBase {
 export const STIMULI_TABLE_PREFIX = `_stimuli`;
 
 const getTableName = (name: string) => {
-  return `${STIMULI_TABLE_PREFIX}-${name}`;
+  return `${STIMULI_TABLE_PREFIX}-${kebabCase(name)}`;
 };
 
 export interface DefinedStimuli {
