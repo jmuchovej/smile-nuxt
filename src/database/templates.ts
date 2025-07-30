@@ -284,7 +284,7 @@ export function tsTablesTemplate(config: SmileBuildConfig, tables: Record<string
       return [
         `// Generated SQL as virtual export`,
         `export const tablesSQL = [`,
-        indentLines(forTSExport.join("\n"), 2),
+        indentLines(forTSExport.join(",\n"), 2),
         `];`,
       ].join("\n");
     },
