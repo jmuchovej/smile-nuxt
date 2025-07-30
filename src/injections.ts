@@ -34,13 +34,7 @@ export async function injectRuntimeTools(buildConfig: SmileBuildConfig) {
   const templates: string[] = [];
 
   for (const layout of layouts) {
-    const suffix = relative(resolve("./runtime"), layout);
-    const template: NuxtTemplate = {
-      src: layout,
-      filename: `smile/${suffix}`,
-      write: true,
-    };
-    addLayout(template, `smile-${parse(suffix).name}`);
+    const template = addTemplatePage(resolve("./runtime"), layout);
     // biome-ignore lint/style/noNonNullAssertion: this will always be set...
     templates.push(template.filename!);
   }
@@ -59,4 +53,15 @@ export async function injectRuntimeTools(buildConfig: SmileBuildConfig) {
       });
     }
   });
+}
+
+export function addTemplatePage(base: string, path: string): NuxtTemplate {
+  const suffix = relative(base, path);
+  const template: NuxtTemplate = {
+    src: path,
+    filename: `smile/${suffix}`,
+    write: true,
+  };
+  addLayout(template, `smile-${parse(suffix).name}`);
+  return template;
 }
