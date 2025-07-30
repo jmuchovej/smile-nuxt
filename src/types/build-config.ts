@@ -2,6 +2,7 @@ import { existsSync, mkdirSync } from "node:fs";
 import type { Resolver } from "@nuxt/kit";
 import type { Nuxt } from "nuxt/schema";
 import { dirname, join } from "pathe";
+import { logger } from "../utils/module";
 import type { ResolvedExperiment } from "../config";
 
 export interface SmileBuildConfig {
@@ -40,7 +41,10 @@ export function createSmileBuildConfig(
 
   const buildPaths = [sandbox, database];
   for (const path of buildPaths) {
-    if (!existsSync(path)) mkdirSync(path, { recursive: true });
+    if (!existsSync(path)) {
+      logger.debug(`Creating ${path}`);
+      mkdirSync(path, { recursive: true });
+    }
   }
 
   return {
