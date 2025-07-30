@@ -2,7 +2,7 @@ import { createDefineConfig, loadConfig, type WatchConfigOptions, watchConfig } 
 import type { Nuxt } from "nuxt/schema";
 import { join, relative } from "pathe";
 import z from "zod";
-import { logger } from "../utils/module";
+import { useLogger } from "../utils/module";
 import { type DefinedExperiment, defineExperiment, resolveExperiments } from "./experiment";
 import { defineStimuli } from "./stimuli";
 
@@ -44,6 +44,7 @@ export const defineSmileConfig = createDefineConfig<NuxtSmileConfig>();
 type ConfigLoader = typeof watchConfig;
 
 export async function loadSmileConfig(nuxt: Nuxt) {
+  const logger = useLogger("config");
   const devConfigLoader = (opts: WatchConfigOptions) =>
     watchConfig({
       ...opts,

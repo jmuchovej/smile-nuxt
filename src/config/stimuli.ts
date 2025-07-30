@@ -3,7 +3,7 @@ import { basename, dirname, extname, join } from "pathe";
 import { kebabCase } from "scule";
 import { type GlobOptions, globSync } from "tinyglobby";
 import { type ZodObject, z } from "zod";
-import { logger } from "../utils/module";
+import { useLogger } from "../utils/module";
 
 export type StimuliSource = string | string[];
 
@@ -86,6 +86,7 @@ export const defineStimuli = (stimuli: StimuliBase): DefinedStimuli => {
 };
 
 export function resolveStimuli(rootDir: string, stimuli: DefinedStimuli): ResolvedStimuli {
+  const logger = useLogger("config", "stimuli");
   const { source } = stimuli; // sugar
   const sources = Array.isArray(source) ? source : [source];
 

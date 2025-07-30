@@ -19,6 +19,9 @@ export interface SmileRuntimeConfig {
   database: {
     path: string;
   };
+  session: {
+    secret: string;
+  };
 }
 
 export interface SmilePublicRuntimeConfig {

@@ -4,7 +4,7 @@ import type { SmileColumn, SmileTable } from "./types";
 const sqlite = new SQLiteSyncDialect();
 
 export function getDropTableIfExistsQuery(table: SmileTable): string {
-  return `DROP TABLE IF EXISTS ${sqlite.escapeName(table.name)}`;
+  return `DROP TABLE IF EXISTS ${sqlite.escapeName(table.name)};`;
 }
 
 /**
@@ -34,7 +34,7 @@ export function getCreateTableQuery(table: SmileTable): string {
     columns.push(`  PRIMARY KEY (${pkFields})`);
   }
 
-  return `CREATE TABLE ${sqlite.escapeName(table.name)} (\n${columns.join(",\n")}\n)`;
+  return `CREATE TABLE ${sqlite.escapeName(table.name)} (\n${columns.join(",\n")}\n);`;
 }
 
 /**
@@ -63,7 +63,7 @@ export function getCreateIndexQueries(table: SmileTable): string[] {
       sqlite.escapeName(name),
       "ON",
       sqlite.escapeName(table.name),
-      `(${columns.map(sqlite.escapeName).join(", ")})`,
+      `(${columns.map(sqlite.escapeName).join(", ")});`,
     ]
       .filter(Boolean)
       .join(" ");

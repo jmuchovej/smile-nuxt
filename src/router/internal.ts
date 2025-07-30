@@ -26,18 +26,23 @@ export async function addInternalRoutes(config: SmileBuildConfig) {
     }
   });
 
-  const apiBase = resolve("../runtime/api");
+  const apiBase = resolve("../runtime/server/api");
   const apiFiles = await resolveFiles(apiBase, "**/*.ts");
 
   for (const apiFile of apiFiles) {
-    const relpath = relative(apiBase, apiFile);
-    const [route, method] = relpath.replace(extname(relpath), "").split(".", 2);
-    if (!route || !method) continue;
-
-    addServerHandler({
-      route: `/api/smile/${route.replace(/\/index$/, "")}`,
-      method: method as RouterMethod,
-      handler: apiFile,
-    });
+    addAPIRoute(apiBase, apiFile);
   }
+}
+
+export function addAPIRoute(base: string, path: string) {
+  const relpath = relative(base, path);
+
+  const [route, method] = relpath.replace(extname(relpath), "").split(".", 2);
+  if (!route || !method) return;
+
+  addServerHandler({
+    route: `/api/smile/${route.replace(/\/index$/, "")}`,
+    method: method as RouterMethod,
+    handler: path,
+  });
 }

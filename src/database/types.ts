@@ -60,3 +60,7 @@ export type SmileColumn = z.infer<typeof columnSchema>;
 export type SmileCompositeKey = z.infer<typeof compositeKeysSchema>;
 export type SmileIndex = z.infer<typeof indexSchema>;
 export type SmileTable = z.infer<typeof tableSchema>;
+
+export type DFRecord = {
+  [x: string]: string | number | bigint | boolean | null;
+};
