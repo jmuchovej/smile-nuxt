@@ -1,12 +1,18 @@
 import { camelCase } from "scule";
 import type pl from "nodejs-polars";
+import type { ZodObject } from "zod";
 import type { NuxtTemplate } from "@nuxt/schema";
 import type { SmileBuildConfig } from "../types/build-config";
-import type { DFRecord, SmileTable, SmileColumn } from "./types";
-import { getCreateIndexQueries, getCreateTableQuery, getDropTableIfExistsQuery } from "./sql";
+import type { DFRecord, SmileTable, SmileColumn } from "../database/types";
+import type { ResolvedStimuli, ResolvedStimuliSource } from "../config/stimuli";
+import {
+  getCreateIndexQueries,
+  getCreateTableQuery,
+  getDropTableIfExistsQuery,
+} from "../database/sql";
 import { useLogger, indentLines } from "../utils/module";
 
-export const moduleTemplates = {
+export const databaseTemplates = {
   drizzle: "smile/database/drizzle.config.ts",
   schema: "smile/database/schema.ts",
   database: "smile/database/index.ts",
@@ -27,7 +33,7 @@ export function drizzleConfigTemplate(config: SmileBuildConfig): NuxtTemplate {
   const dbCredentials = indentLines(JSON.stringify(credentials, null, 2) ?? "", 2);
 
   return {
-    filename: moduleTemplates.drizzle,
+    filename: databaseTemplates.drizzle,
     options: {
       dbCredentials,
     },
@@ -48,19 +54,23 @@ export function drizzleConfigTemplate(config: SmileBuildConfig): NuxtTemplate {
   } satisfies NuxtTemplate;
 }
 
-export function schemaTemplate(config: SmileBuildConfig, tables: Record<string, SmileTable>): NuxtTemplate {
+export function schemaTemplate(
+  config: SmileBuildConfig,
+  tables: Record<string, SmileTable>
+): NuxtTemplate {
   const logger = useLogger("database");
   const { nuxt } = config;
 
   return {
-    filename: moduleTemplates.schema,
+    filename: databaseTemplates.schema,
+    write: true,
     options: {
       experimentTables: tables,
     },
     getContents: ({ options }) => {
       const { experimentTables } = options;
       const tables = Object.values(experimentTables).map((table) => ({
-        tsName: camelCase(table.name),
+        tsName: camelCase(table.name.replace(/@/g, "-")),
         sqlName: table.name,
         columns: Object.entries(table.columns).map(([name, column]) => ({
           name,
@@ -87,7 +97,7 @@ export function schemaTemplate(config: SmileBuildConfig, tables: Record<string, 
         ...tables.map(({ tsName, sqlName, columns }) =>
           [
             `export const ${tsName} = sqliteTable("${sqlName}", {`,
-            ...columns.map(({ name, definition }) => `  ${name}: ${definition}`),
+            ...columns.map(({ name, definition }) => `  ${name}: ${definition},`),
             `});`,
             ``,
           ].join("\n")
@@ -127,7 +137,7 @@ function generateColumnDefinition(column: SmileColumn): string {
 
 export function databaseTemplate(config: SmileBuildConfig): NuxtTemplate {
   return {
-    filename: moduleTemplates.database,
+    filename: databaseTemplates.database,
     write: true,
     getContents: () => {
       return [
@@ -167,16 +177,20 @@ export function databaseTemplate(config: SmileBuildConfig): NuxtTemplate {
         `  sumDistinct,`,
         `} from "drizzle-orm";`,
         ``,
-        `export * from "./schema";`,
+        `// Re-export schema tables`,
+        `export * from "#smile:db/schema";`,
         ``,
       ].join("\n");
     },
   } satisfies NuxtTemplate;
 }
 
-export function tsSeedTemplate(config: SmileBuildConfig, tables: Record<string, SmileTable>): NuxtTemplate {
+export function tsSeedTemplate(
+  config: SmileBuildConfig,
+  tables: Record<string, SmileTable>
+): NuxtTemplate {
   return {
-    filename: moduleTemplates.tsSeed,
+    filename: databaseTemplates.tsSeed,
     write: true,
     options: {
       experimentTables: tables,
@@ -184,11 +198,18 @@ export function tsSeedTemplate(config: SmileBuildConfig, tables: Record<string, 
     },
     getContents: async ({ options }) => {
       const { experimentTables, experiments } = options;
-      const stimuli = Object.fromEntries(Object.values(experiments).map(({ stimuli }) => [stimuli.tableName, stimuli]));
-      const stimuliTables = Object.values(experimentTables).filter(({ name }) => Object.keys(stimuli).includes(name));
+      const stimuli = Object.fromEntries(
+        Object.values(experiments).map(({ stimuli }) => [stimuli.tableName, stimuli])
+      );
+      const stimuliTables = Object.values(experimentTables).filter(({ name }) =>
+        Object.keys(stimuli).includes(name)
+      );
       const seedRecords = Object.fromEntries(
         await Promise.all(
-          stimuliTables.map(async (t) => [camelCase(t.name), await exportStimuliSeeds(stimuli[t.name]!)])
+          stimuliTables.map(async (t) => [
+            camelCase(t.name),
+            await exportStimuliSeeds(stimuli[t.name]!),
+          ])
         )
       );
 
@@ -227,7 +248,9 @@ async function exportStimuliSeeds(stimuli: ResolvedStimuli): Promise<DFRecord[]>
   logger.debug(`Generating seed exports for stimuli=\`${name}\`!`);
   let records: DFRecord[] = [];
   try {
-    records = (await Promise.all(sources.map(async (s) => await exportDataFrame(s, schema)))).flat();
+    records = (
+      await Promise.all(sources.map(async (s) => await exportDataFrame(s, schema)))
+    ).flat();
   } catch (error) {
     logger.error(`  Failed to generate seed exports: ${error.message}`);
   }
@@ -235,7 +258,11 @@ async function exportStimuliSeeds(stimuli: ResolvedStimuli): Promise<DFRecord[]>
   return records;
 }
 
-async function exportDataFrame(source: ResolvedStimuliSource, schema: ZodObject): Promise<DFRecord[]> {
+async function exportDataFrame(
+  source: ResolvedStimuliSource,
+  schema: ZodObject
+): Promise<DFRecord[]> {
+  const logger = useLogger("database", "templates", "export");
   let df: pl.DataFrame;
   try {
     df = await source.load();
@@ -249,16 +276,21 @@ async function exportDataFrame(source: ResolvedStimuliSource, schema: ZodObject)
     // Convert DataFrame to JavaScript objects & validate against schema
     records = df.toRecords().map((record) => schema.parse(record) as DFRecord);
   } catch (error) {
-    logger.error(`  Failed to validate ${source.basename} against schema! ${error.message}`);
+    logger.error(
+      `  Failed to validate ${source.basename} against schema! ${error.message}`
+    );
     return records;
   }
 
   return records;
 }
 
-export function tsTablesTemplate(config: SmileBuildConfig, tables: Record<string, SmileTable>): NuxtTemplate {
+export function tsTablesTemplate(
+  config: SmileBuildConfig,
+  tables: Record<string, SmileTable>
+): NuxtTemplate {
   return {
-    filename: moduleTemplates.tsTables,
+    filename: databaseTemplates.tsTables,
     write: true,
     options: {
       experimentTables: tables,
@@ -279,7 +311,9 @@ export function tsTablesTemplate(config: SmileBuildConfig, tables: Record<string
         ``,
       ]);
 
-      const forTSExport = asSQL.filter((q) => !q.startsWith(`---`) && q.length !== 0).map((sql) => `\`${sql}\``);
+      const forTSExport = asSQL
+        .filter((q) => !q.startsWith(`---`) && q.length !== 0)
+        .map((sql) => `\`${sql}\``);
 
       return [
         `// Generated SQL as virtual export`,
@@ -291,9 +325,12 @@ export function tsTablesTemplate(config: SmileBuildConfig, tables: Record<string
   } satisfies NuxtTemplate;
 }
 
-export function sqlTablesTemplate(config: SmileBuildConfig, tables: Record<string, SmileTable>): NuxtTemplate {
+export function sqlTablesTemplate(
+  config: SmileBuildConfig,
+  tables: Record<string, SmileTable>
+): NuxtTemplate {
   return {
-    filename: moduleTemplates.sqlTables,
+    filename: databaseTemplates.sqlTables,
     write: true,
     options: {
       experimentTables: tables,

@@ -1,22 +1,11 @@
 import { join } from "pathe";
-import { addTemplate, addServerTemplate, addServerPlugin } from "@nuxt/kit";
-import type pl from "nodejs-polars";
-import type { ZodObject } from "zod";
-import type { ResolvedStimuli, ResolvedStimuliSource } from "../config/stimuli";
+import { addServerPlugin } from "@nuxt/kit";
 import type { SmileBuildConfig } from "../types/build-config";
 import { useLogger } from "../utils/module";
 import { blockSchema, participantSchema, sessionSchema, trialSchema } from "./schemas";
-import type { SmileColumn, SmileTable } from "./types";
+import type { SmileTable } from "./types";
 import { getValidatedTable } from "./zod";
-import {
-  moduleTemplates,
-  drizzleConfigTemplate,
-  schemaTemplate,
-  databaseTemplate,
-  tsSeedTemplate,
-  tsTablesTemplate,
-  sqlTablesTemplate,
-} from "./templates";
+import { SmileTemplates, moduleTemplates } from "../templates";
 
 export function initializeDatabase(buildConfig: SmileBuildConfig) {
   const logger = useLogger("database");
@@ -30,7 +19,7 @@ export function initializeDatabase(buildConfig: SmileBuildConfig) {
     paths: { database: databasePath },
   } = buildConfig;
 
-  addTemplate(databaseTemplate(buildConfig));
+  SmileTemplates.database(buildConfig);
   nuxt.options.alias["#smile/database"] = databasePath;
 
   const tables = getMetaTables();
@@ -45,13 +34,13 @@ export function initializeDatabase(buildConfig: SmileBuildConfig) {
     logger.debug(`Adding the \`${stimuli.tableName}\` table!`);
   }
 
-  addTemplate(drizzleConfigTemplate(buildConfig));
-  addTemplate(schemaTemplate(buildConfig, tables));
+  SmileTemplates.drizzleConfig(buildConfig);
+  SmileTemplates.schema(buildConfig, tables);
 
-  addTemplate(sqlTablesTemplate(buildConfig, tables));
-  addTemplate(tsTablesTemplate(buildConfig, tables));
+  SmileTemplates.sqlTables(buildConfig, tables);
+  SmileTemplates.tsTables(buildConfig, tables);
   nuxt.options.alias["#smile/sql/tables"] = join(buildDir, moduleTemplates.tsTables);
-  addTemplate(tsSeedTemplate(buildConfig, tables));
+  SmileTemplates.tsSeed(buildConfig, tables);
   nuxt.options.alias["#smile/sql/seed"] = join(buildDir, moduleTemplates.tsSeed);
 
   addServerPlugin(resolve("runtime", "server", "plugins", "database.ts"));
