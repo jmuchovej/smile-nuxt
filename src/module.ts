@@ -18,6 +18,7 @@ import { devtools, useLogger, registerModule } from "./utils/module";
 import { SmileTemplates } from "./templates";
 import type { NitroConfig } from "nitropack";
 import { join } from "pathe";
+import { existsSync } from "node:fs";
 
 export type * from "./config";
 export {
@@ -136,6 +137,23 @@ export default defineNuxtModule<SmileModuleOptions>({
     await spawnDrizzleStudio(buildConfig);
     await generateRoutingTable(buildConfig);
     await injectRuntimeTools(buildConfig);
+
+    // Check if user has defined app.vue, if not create one with SmileLayout
+    nuxt.hook("app:resolve", async (app) => {
+      const userAppPath = join(nuxt.options.srcDir, "app.vue");
+
+      if (!existsSync(userAppPath)) {
+        // User hasn't defined app.vue, create one for them
+        logger.info("No app.vue found, creating one with SmileLayout wrapper");
+        const appTemplate = SmileTemplates.appVue(buildConfig);
+        app.mainComponent = appTemplate.dst;
+      } else {
+        // User has app.vue, remind them to use SmileLayout
+        logger.info(
+          "User app.vue detected. Ensure it includes <SmileLayout> wrapper for full functionality"
+        );
+      }
+    });
 
     nuxt.options.alias["#smile:components"] =
       SmileTemplates.mdxComponents(buildConfig).dst;
