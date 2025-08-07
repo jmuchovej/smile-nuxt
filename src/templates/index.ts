@@ -1,5 +1,6 @@
 import type { SmileTable } from "../database/types";
-import { databaseTemplates } from "../templates/database";
+import { databaseTemplates } from "./database";
+import { mdxTemplates } from "./mdx";
 import type { SmileBuildConfig } from "@smile/types/build-config";
 import { addTemplate } from "@nuxt/kit";
 
@@ -10,16 +11,19 @@ import {
   sqlTablesTemplate,
   tsSeedTemplate,
   tsTablesTemplate,
-} from "../templates/database";
+} from "./database";
+import { mdxComponentsTemplate } from "./mdx";
 
 // Re-export and merge template constants under a unified moduleTemplates object
 export const moduleTemplates = {
   // Database templates
   ...databaseTemplates,
 
+  // MDX templates
+  ...mdxTemplates,
+
   // Future template categories can be added here
   // app: appTemplates,
-  // mdx: mdxTemplates,
   // timeline: timelineTemplates,
   // components: componentTemplates,
 } as const;
@@ -47,5 +51,9 @@ export namespace SmileTemplates {
   }
   export function sqlTables(config: SmileBuildConfig, tables: SmileTableRecords) {
     return addTemplate(sqlTablesTemplate(config, tables));
+  }
+
+  export function mdxComponents(config: SmileBuildConfig) {
+    return addTemplate(mdxComponentsTemplate(config));
   }
 }

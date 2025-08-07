@@ -1,6 +1,11 @@
 // biome-ignore assist/source/organizeImports: Must be first to ensure zod extensions are loaded
 import "./database/zod";
-import { addPlugin, addServerPlugin, createResolver, defineNuxtModule } from "@nuxt/kit";
+import {
+  addPlugin,
+  addServerPlugin,
+  createResolver,
+  defineNuxtModule,
+} from "@nuxt/kit";
 import { defu } from "defu";
 import type { Nuxt } from "nuxt/schema";
 import { loadSmileConfig } from "./config";
@@ -8,8 +13,11 @@ import { initializeDatabase } from "./database";
 import { spawnDrizzleStudio } from "./database/studio";
 import { injectRuntimeTools } from "./injections";
 import { generateRoutingTable } from "./router";
-import { createSmileBuildConfig } from "./types/build-config";
+import { createSmileBuildConfig, type SmileBuildConfig } from "./types/build-config";
 import { devtools, useLogger, registerModule } from "./utils/module";
+import { SmileTemplates } from "./templates";
+import type { NitroConfig } from "nitropack";
+import { join } from "pathe";
 
 export type * from "./config";
 export {
@@ -82,7 +90,9 @@ export default defineNuxtModule<SmileModuleOptions>({
       },
       sessionConfig: {
         name: "smile-session",
-        password: process.env.SMILE_SESSION_SECRET || "smile-session-secret-at-least-32-characters-long",
+        password:
+          process.env.SMILE_SESSION_SECRET ||
+          "smile-session-secret-at-least-32-characters-long",
         cookie: {
           httpOnly: true,
           sameSite: "lax",
@@ -112,7 +122,9 @@ export default defineNuxtModule<SmileModuleOptions>({
       activeExperiment,
       experiments,
       session: {
-        secret: process.env.SMILE_SESSION_SECRET || "smile-session-secret-at-least-32-characters-long",
+        secret:
+          process.env.SMILE_SESSION_SECRET ||
+          "smile-session-secret-at-least-32-characters-long",
       },
     });
 
@@ -120,8 +132,30 @@ export default defineNuxtModule<SmileModuleOptions>({
 
     await devtools(buildConfig);
     initializeDatabase(buildConfig);
+    initializeMDXProcessor(buildConfig);
     await spawnDrizzleStudio(buildConfig);
     await generateRoutingTable(buildConfig);
     await injectRuntimeTools(buildConfig);
+
+    nuxt.options.alias["#smile:components"] =
+      SmileTemplates.mdxComponents(buildConfig).dst;
   },
 });
+
+function initializeMDXProcessor(config: SmileBuildConfig) {
+  const {
+    nuxt,
+    resolver: { resolve },
+    paths: { sandbox },
+  } = config;
+
+  nuxt.hook("nitro:config", (nitroConfig: NitroConfig) => {
+    nitroConfig.storage = nitroConfig.storage || {};
+    nitroConfig.storage["smile:mdx"] = {
+      driver: "fs",
+      base: join(sandbox, "mdx"),
+    };
+  });
+
+  addServerPlugin(resolve("runtime", "server", "plugins", "mdx.ts"));
+}
