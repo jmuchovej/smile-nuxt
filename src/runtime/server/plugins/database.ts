@@ -3,14 +3,14 @@ import type { mysqlTable } from "drizzle-orm/mysql-core";
 import type { pgTable } from "drizzle-orm/pg-core";
 import type { sqliteTable } from "drizzle-orm/sqlite-core";
 import { defineNitroPlugin, type NitroApp, useDatabase } from "#nitro";
-import { tablesSQL } from "#smile/database/sql/tables";
-import { seeds } from "#smile/database/sql/seed";
+import { tablesSQL } from "#smile:sql/tables";
+import { seeds } from "#smile:sql/seed";
 import { useLogger } from "#smile/internal";
 
 type DrizzleTable = ReturnType<typeof sqliteTable | typeof pgTable | typeof mysqlTable>;
 
 export default defineNitroPlugin(async (_nitroApp: NitroApp) => {
-  const logger = useLogger("runtime", "server", "database")
+  const logger = useLogger("runtime", "server", "database");
   logger.debug("Starting nitro plugin...");
 
   const db = useDatabase("smile");
@@ -18,13 +18,13 @@ export default defineNitroPlugin(async (_nitroApp: NitroApp) => {
 
   await db.sql`pragma defer_foreign_keys=true;`;
 
-  logger.info(`Creating tables!`)
+  logger.info(`Creating tables!`);
   for await (const statement of tablesSQL) {
     // console.log(`Executing: ${statement.split("\n")[0]}...`);
     await db.exec(statement);
   }
 
-  logger.info(`Seeding stimuli databases!`)
+  logger.info(`Seeding stimuli databases!`);
   for await (const [key, value] of Object.entries(seeds)) {
     const { table, seed } = value;
     await seedFromDataFrame(dz, key, table, seed);
@@ -41,7 +41,7 @@ async function seedFromDataFrame(
   records: DFRecord[],
   batchSize = 100
 ) {
-  const logger = useLogger("runtime", "server", "database", "seed")
+  const logger = useLogger("runtime", "server", "database", "seed");
 
   let successCount = 0;
   for (let idx = 0; idx < records.length; idx += batchSize) {

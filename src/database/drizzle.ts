@@ -103,7 +103,10 @@ export function toDrizzle(table: SmileTable): DrizzledSmileTable {
 /**
  * Create a Drizzle column from a Smile column definition
  */
-function createDrizzleColumn(fieldName: string, smileColumn: SmileColumn): DrizzleColumnBuilder {
+function createDrizzleColumn(
+  fieldName: string,
+  smileColumn: SmileColumn
+): DrizzleColumnBuilder {
   let column: DrizzleColumnBuilder;
 
   // Create base column based on type

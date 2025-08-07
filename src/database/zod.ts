@@ -6,8 +6,21 @@
  * that can be used by both SQL generation and Drizzle conversion.
  */
 import type { ZodType } from "zod";
-import { ZodDate, ZodDefault, ZodNullable, ZodNumber, type ZodObject, ZodOptional, ZodString } from "zod";
-import type { SmileColumn, SmileColumnConstraints, SmileColumnType, SmileTable } from "./types";
+import {
+  ZodDate,
+  ZodDefault,
+  ZodNullable,
+  ZodNumber,
+  type ZodObject,
+  ZodOptional,
+  ZodString,
+} from "zod";
+import type {
+  SmileColumn,
+  SmileColumnConstraints,
+  SmileColumnType,
+  SmileTable,
+} from "./types";
 import { tableSchema } from "./types";
 
 export function getValidatedTable(name: string, schema: ZodObject): SmileTable {
@@ -89,21 +102,31 @@ function inferSmileColumnType(zodType: ZodType): SmileColumnType {
       return "text";
   }
 
-  throw new UnknownColumnError(`Cannot convert ${def.type} to a valid \`SmileColumn\`!`);
+  throw new UnknownColumnError(
+    `Cannot convert ${def.type} to a valid \`SmileColumn\`!`
+  );
 }
 
 /**
  * Check if a field is optional (nullable, optional, or has default)
  */
 function isOptionalField(zodType: ZodType): boolean {
-  return zodType instanceof ZodOptional || zodType instanceof ZodNullable || zodType instanceof ZodDefault;
+  return (
+    zodType instanceof ZodOptional ||
+    zodType instanceof ZodNullable ||
+    zodType instanceof ZodDefault
+  );
 }
 
 /**
  * Unwrap nested Zod types to get the core type
  */
 function unwrapZodType(zodType: ZodType): ZodType {
-  if (zodType instanceof ZodOptional || zodType instanceof ZodNullable || zodType instanceof ZodDefault) {
+  if (
+    zodType instanceof ZodOptional ||
+    zodType instanceof ZodNullable ||
+    zodType instanceof ZodDefault
+  ) {
     // biome-ignore lint/suspicious/noExplicitAny: false-positive, required to properly type as ZodType...
     return unwrapZodType(zodType.unwrap() as any as ZodType);
   }
@@ -133,7 +156,8 @@ function buildCompositePrimaryKey(columns: Record<string, SmileColumn>): string[
     .map(([name, _]) => name);
 
   const isMetaTable = primaryKeyFields.length > 0;
-  const hasCompositeFields = trialFields.length > 0 || blockFields.length > 0 || conditionFields.length > 0;
+  const hasCompositeFields =
+    trialFields.length > 0 || blockFields.length > 0 || conditionFields.length > 0;
 
   // Validate based on table type
   if (isMetaTable && hasCompositeFields) {
@@ -157,7 +181,11 @@ function buildCompositePrimaryKey(columns: Record<string, SmileColumn>): string[
     throw new Error("Only one field can be marked as conditionID");
   }
 
-  const compositeKey: string[] = [...trialFields, ...blockFields, ...conditionFields].filter(Boolean);
+  const compositeKey: string[] = [
+    ...trialFields,
+    ...blockFields,
+    ...conditionFields,
+  ].filter(Boolean);
 
   return compositeKey;
 }
@@ -272,7 +300,10 @@ declare module "zod" {
 }
 
 // Helper function to add SQL constraints
-function addSmileConstraint(schema: ZodType, constraints: Partial<SmileColumnConstraints>) {
+function addSmileConstraint(
+  schema: ZodType,
+  constraints: Partial<SmileColumnConstraints>
+) {
   const existing = schema.meta() || {};
   return schema.meta({
     ...existing,

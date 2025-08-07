@@ -9,13 +9,18 @@ import {
 import { defu } from "defu";
 import type { Nuxt } from "nuxt/schema";
 import { loadSmileConfig } from "./config";
-import { initializeDatabase } from "./database";
-import { spawnDrizzleStudio } from "./database/studio";
+import {
+  blockSchema,
+  participantSchema,
+  sessionSchema,
+  trialSchema,
+} from "./database/schemas";
+import { getValidatedTable } from "./database/zod";
 import { injectRuntimeTools } from "./injections";
 import { generateRoutingTable } from "./router";
 import { createSmileBuildConfig, type SmileBuildConfig } from "./types/build-config";
 import { devtools, useLogger, registerModule } from "./utils/module";
-import { SmileTemplates } from "./templates";
+import { SmileTemplates, moduleTemplates } from "./templates";
 import type { NitroConfig } from "nitropack";
 import { join } from "pathe";
 import { existsSync } from "node:fs";
@@ -134,7 +139,6 @@ export default defineNuxtModule<SmileModuleOptions>({
     await devtools(buildConfig);
     initializeDatabase(buildConfig);
     initializeMDXProcessor(buildConfig);
-    await spawnDrizzleStudio(buildConfig);
     await generateRoutingTable(buildConfig);
     await injectRuntimeTools(buildConfig);
 
@@ -175,5 +179,52 @@ function initializeMDXProcessor(config: SmileBuildConfig) {
     };
   });
 
-  addServerPlugin(resolve("runtime", "server", "plugins", "mdx.ts"));
+  addServerPlugin(resolve("./runtime/server/plugins/mdx.ts"));
+}
+
+function initializeDatabase(buildConfig: SmileBuildConfig) {
+  const logger = useLogger("database");
+
+  const {
+    nuxt,
+    nuxt: {
+      options: { buildDir },
+    },
+    resolver: { resolve },
+    paths: { database: databasePath },
+  } = buildConfig;
+
+  SmileTemplates.database(buildConfig);
+  nuxt.options.alias["#smile:db/schema"] = databasePath;
+
+  const tables = {
+    participants: getValidatedTable(`participants`, participantSchema),
+    sessions: getValidatedTable(`sessions`, sessionSchema),
+    blocks: getValidatedTable(`block`, blockSchema),
+    trials: getValidatedTable(`trials`, trialSchema),
+  };
+  logger.debug(`Added all of Smile's "meta" tables!`);
+
+  const { experiments } = buildConfig;
+  for (const experiment of Object.values(experiments)) {
+    const { stimuli } = experiment;
+    tables[experiment.tableName] = getValidatedTable(
+      experiment.tableName,
+      experiment.schema
+    );
+    tables[stimuli.tableName] = getValidatedTable(stimuli.tableName, stimuli.schema);
+    logger.debug(`Adding the \`${experiment.tableName}\` table!`);
+    logger.debug(`Adding the \`${stimuli.tableName}\` table!`);
+  }
+
+  SmileTemplates.drizzleConfig(buildConfig);
+  SmileTemplates.schema(buildConfig, tables);
+
+  SmileTemplates.sqlTables(buildConfig, tables);
+  SmileTemplates.tsTables(buildConfig, tables);
+  nuxt.options.alias["#smile:sql/tables"] = join(buildDir, moduleTemplates.tsTables);
+  SmileTemplates.tsSeed(buildConfig, tables);
+  nuxt.options.alias["#smile:sql/seed"] = join(buildDir, moduleTemplates.tsSeed);
+
+  addServerPlugin(resolve("./runtime/server/plugins/database.ts"));
 }

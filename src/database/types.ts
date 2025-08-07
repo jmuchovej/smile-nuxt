@@ -36,7 +36,9 @@ export const tableSchema = z
     name: z.string().min(1),
     columns: z
       .record(z.string(), columnSchema)
-      .refine((cols) => Object.keys(cols).length > 0, { message: "Tables must have at least one column" }),
+      .refine((cols) => Object.keys(cols).length > 0, {
+        message: "Tables must have at least one column",
+      }),
     compositeKeys: compositeKeysSchema,
     indexes: indexesSchema,
   })
@@ -49,7 +51,9 @@ export const tableSchema = z
   )
   .refine(
     (table) => {
-      return table.indexes.every((index) => index.columns.every((column) => column in table.columns));
+      return table.indexes.every((index) =>
+        index.columns.every((column) => column in table.columns)
+      );
     },
     { message: "Index references non-existent columns..." }
   );
